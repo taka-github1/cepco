@@ -126,7 +126,7 @@ input[type="text"]{
   <body>
     <div class="panel-container">
       <div class="panel-side esri-widget">
-        <h3>半径500m以内の緊急避難場所</h3>
+        <h3>半径100m以内の緊急避難場所</h3>
         <ul id="nyc_graphics">
           <li>地点を入力してください</li>
         </ul>
@@ -208,7 +208,7 @@ require(["esri/WebMap",
     });
     view.graphics.add(pointGraphic);
 
-    var buffer = geometryEngine.geodesicBuffer(point, 500, "meters");
+    var buffer = geometryEngine.geodesicBuffer(point, 100, "meters");
     var bufferGraphic = new Graphic({
       geometry: buffer,
       symbol: buffermarkerSymbol
