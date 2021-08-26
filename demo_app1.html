@@ -1,0 +1,296 @@
+
+
+<!DOCTYPE html>
+<html lang="en" >
+
+<head>
+
+  <meta charset="UTF-8">
+  <title>指示登録アプリ</title>
+  
+  
+  
+  
+<style>
+html,
+body,
+#sceneDiv {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+.panel-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.panel-side {
+  padding: 2px;
+  box-sizing: border-box;
+  width: 300px;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  right: 0;
+  color: #fff;
+  background-color: rgba(0, 0, 0, 0.6);
+  overflow: auto;
+  z-index: 60;
+}
+
+.panel-side h3 {
+  padding: 0 20px;
+  margin: 20px 0;
+}
+
+.panel-side ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.panel-side li {
+  list-style: none;
+  padding: 10px 20px;
+}
+
+.panel-result {
+  cursor: pointer;
+  margin: 2px 0;
+  background-color: rgba(0, 0, 0, 0.3);
+}
+
+.panel-result:hover,
+.panel-result:focus {
+  color: orange;
+  background-color: rgba(0, 0, 0, 0.75);
+}
+
+input[type="text"]{
+  width: 90%;
+  padding: 10px 15px;
+  font-size: 16px;
+  border-radius: 3px;
+  border: 2px solid #ddd;
+  box-sizing: border-box;
+}
+
+
+.submit {
+  display: inline-block;
+  padding: 0.6em 1em;
+  text-decoration: none;
+  background: white;
+  color: #67c5ff;
+  border: solid 2px #67c5ff;
+  border-radius: 3px;
+  transition: .4s;
+  font-size: 14px;
+  width: auto;
+  white-space: nowrap;
+  height: auto;
+  margin: 5px;
+  cursor: pointer;
+}
+
+.submit:hover {
+  background: #67c5ff;
+  color: white;
+}
+</style>
+
+  
+  
+  
+  
+
+</head>
+
+<body translate="no" >
+  <html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
+    <title>Query features from a FeatureLayerView | Sample | ArcGIS API for JavaScript 4.20</title>
+
+    <link rel="stylesheet" href="https://js.arcgis.com/4.20/esri/themes/light/main.css" />
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://js.arcgis.com/4.20/"></script>
+
+  </head>
+
+  <body>
+    <div class="panel-container">
+      <div class="panel-side esri-widget">
+        <h3>半径500m以内の緊急避難場所</h3>
+        <ul id="nyc_graphics">
+          <li>地点を入力してください</li>
+        </ul>
+        <br/>
+        <br/>
+        <div id="submitDiv" hidden>
+          <label>指示内容：</label><input type="text" id="message"/><br/>
+          <button id="point_append" class="submit">指示データに追加</button>
+        </div>
+      </div>
+      <div id="sceneDiv"></div>
+    </div>
+  </body>
+</html>
+  
+  
+      <script id="rendered-js" >
+require(["esri/WebMap", 
+         "esri/views/MapView", 
+         "esri/layers/FeatureLayer",
+         "esri/Graphic",
+         "esri/geometry/geometryEngine",
+         "esri/geometry/Point"]
+        , function(WebMap, MapView, FeatureLayer, Graphic, geometryEngine, Point) {
+
+  var pointmarkerSymbol = {
+    type: "simple-marker",
+    color: [226, 119, 40],
+    outline: {
+      color: [255, 255, 255],
+      width: 2
+    }
+  };
+
+  var buffermarkerSymbol = {
+    type: "simple-fill",
+    color: [140, 140, 222, 0.5],
+    outline: {
+      color: [0, 0, 0, 0.5],
+      width: 2
+    }
+  };
+  
+  const map = new WebMap({
+    portalItem:{
+      id: "ed391519a6f844afa06e980b98d287ee"
+    }
+  });
+
+  const view = new MapView({
+    container: "sceneDiv",
+    map: map
+  });
+  
+  var featureLayer = null;
+  map.when(function (layers) {
+    //レイヤー取得
+    featureLayer = layers.layers.find(
+      value => value.title == "指定緊急避難場所");
+    featureLayer.popupEnabled = false;
+  });
+  
+
+  var query_bufferfeatures = function(lat, long){
+    view.graphics.removeAll();
+
+    var point = new Point({
+      type: "point",
+      latitude: lat,
+      longitude: long,
+    });
+    point.spatialReference = {
+      wkid: 4326
+    }
+    
+    var pointGraphic = new Graphic({
+      geometry: point, 
+      symbol: pointmarkerSymbol
+    });
+    view.graphics.add(pointGraphic);
+
+    var buffer = geometryEngine.geodesicBuffer(point, 500, "meters");
+    var bufferGraphic = new Graphic({
+      geometry: buffer,
+      symbol: buffermarkerSymbol
+    });
+    view.graphics.add(bufferGraphic);
+
+    var query = featureLayer.createQuery();
+    query.where = "1=1";
+    query.geometry = buffer;
+    query.spatialRelationship = "intersects";
+    query.returnGeometry = false;
+    query.outFields = [ "OBJECTID", "name" ];
+    featureLayer.queryFeatures(query).then(function(result) {
+      var features = result.features;
+
+      const listNode = document.getElementById("nyc_graphics");
+      const fragment = document.createDocumentFragment();
+      
+      for(var i = 0; i< features.length; i++) {
+        const attributes = features[i].attributes;
+        const oid = attributes["OBJECTID"];
+        const name = attributes["name"];
+
+        const li = document.createElement("li");
+        li.classList.add("panel-result");
+        li.tabIndex = 0;
+        li.setAttribute("data-oid", oid);
+        li.textContent = name;
+
+        fragment.appendChild(li);
+      }
+      
+      listNode.innerHTML = "";
+      listNode.appendChild(fragment);
+      
+      if (features.length > 0){
+        $('#submitDiv').show();
+      } else {
+        $('#submitDiv').hide();
+      }
+      
+      $('body').on('click', '#nyc_graphics li', function(e){
+
+        var oid = e.currentTarget.dataset.oid;
+        
+        
+      });
+
+    });
+
+  }
+
+  //マップクリック時
+  view.on("click", function(event){
+    var point = event.mapPoint;
+    query_bufferfeatures(point.latitude, point.longitude);
+  });
+  
+  $('#point_append').on("click", function(event){
+    
+    view.graphics.removeAll();
+    
+    const listNode = document.getElementById("nyc_graphics");
+    const fragment = document.createDocumentFragment();
+
+    listNode.innerHTML = "";
+    const li = document.createElement("li");
+    li.textContent = "地点を入力してください";
+    fragment.appendChild(li);
+    listNode.appendChild(fragment);
+
+    $('#submitDiv').hide();
+    
+    alert("指示が登録されました");
+  });
+
+});
+    </script>
+
+  
+
+</body>
+
+</html>
+ 
