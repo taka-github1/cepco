@@ -1,0 +1,306 @@
+
+
+<!DOCTYPE html>
+<html lang="ja" >
+
+<head>
+
+  <meta charset="UTF-8">
+
+  <title>長野県GIS重ね合わせ</title>
+  
+  
+  
+  
+<style>
+html,
+body,
+#viewDiv {
+  padding: 0;
+  margin: 0;
+  height: 100%;
+  width: 100%;
+}
+
+#selectDiv {
+  background-color: lightyellow;
+  position: absolute;
+  padding: 10;
+  z-index: 99;
+  bottom: 20px;
+  height: 40px;
+  right: 10px;
+}
+</style>
+
+  
+  
+  
+  
+
+</head>
+
+<body translate="no" >
+  <html>
+  <head>
+
+    <title>長野県GIS重ね合わせ</title>
+
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link
+          rel="stylesheet"
+          href="https://js.arcgis.com/4.18/esri/themes/light/main.css"
+          />
+    <script src="https://js.arcgis.com/4.18/"></script>
+  </head>
+  <body>
+    <!--
+    <div id="selectDiv" class="esri-widget">
+      <label id="theLabel">
+        WMSレイヤー選択
+        <select id="selectLayer"></select>
+      </label>
+    </div>
+    -->
+    <div id="viewDiv"></div>
+  </body>
+</html>
+  
+  
+      <script id="rendered-js" >
+require([
+  "esri/config",
+  "esri/Basemap",
+  "esri/WebMap",
+  "esri/views/MapView",
+  "esri/layers/FeatureLayer",
+  "esri/layers/BaseDynamicLayer",
+  "esri/widgets/LayerList",
+  "esri/widgets/BasemapGallery",
+  "esri/geometry/projection",
+  "esri/geometry/SpatialReference",
+  "esri/core/urlUtils"
+], function (config, Basemap, WebMap, MapView, FeatureLayer, BaseDynamicLayer, LayerList, BasemapGallery, projection, SpatialReference, urlUtils) {
+
+  var view = null;
+      
+  var CustomWMSLayer = BaseDynamicLayer.createSubclass({
+    properties: {
+      mapUrl: null,
+      mapParameters: null
+    },
+
+    getImageUrl: function (extent, width, height) {
+      var urlVariables = this._prepareQuery(
+        this.mapParameters,
+        extent,
+        width,
+        height
+      );
+      var queryString = this._joinUrlVariables(urlVariables);
+      return this.mapUrl + "?" + queryString;
+    },
+
+    _prepareQuery: function (queryParameters, extent, width, height) {
+      
+      var x_offset = 0.003;
+      var y_offset = -0.003;
+      var scale_offset = -1000;
+      //var scale_offset = 0;
+      
+      //緯度経度に投影変換
+      const cs1 = extent.spatialReference;
+      const cs2 = new SpatialReference({
+        wkid: 4326
+      });
+
+      const min_point = {
+        type: "point",
+        x: extent.xmin,
+        y: extent.ymin,
+        spatialReference: cs1
+      };
+      const max_point = {
+        type: "point",
+        x: extent.xmax,
+        y: extent.ymax,
+        spatialReference: cs1
+      };
+      var x = extent.xmin + (extent.xmax - extent.xmin) / 2;
+      var y = extent.ymin + (extent.ymax - extent.ymin) / 2;
+      
+      const center_point = {
+        type: "point",
+        x: x,
+        y: y,
+        spatialReference: cs1
+      };
+      
+      var geo_min = projection.project(min_point, cs2);
+      var geo_max = projection.project(max_point, cs2);
+      var geo_center = projection.project(center_point, cs2);
+      x = geo_center.x + x_offset;
+      y = geo_center.y + y_offset;
+     
+      var replacers = {
+        pgFlg: 0,
+        iork: false,
+        tss: 'a2a5317f-5a38-477f-b29c-e9cdfb7dbf3c',
+        prj: 1,
+        cp: x + ',' + y,
+        mps: view.scale + scale_offset,
+        siz: height + ',' + width,
+        dm: 0,
+        xmin: geo_min.x,
+        xmax: geo_max.x,
+        ymin: geo_min.y,
+        ymax: geo_max.y,
+        img: 3,
+        mtp: 'kiban'
+      };
+
+      var urlVariables = this._replace({}, queryParameters, replacers);
+      return urlVariables;
+    },
+
+    _replace: function (urlVariables, queryParameters, replacers) {
+      Object.keys(queryParameters).forEach(function (key) {
+        urlVariables[key] = Object.keys(replacers).reduce(
+          function (previous, replacerKey) {
+            return previous.replace(
+              "{" + replacerKey + "}",
+              replacers[replacerKey]
+            );
+          },
+          queryParameters[key]);
+      });
+
+      return urlVariables;
+    },
+
+    _joinUrlVariables: function (urlVariables) {
+      return Object.keys(urlVariables).reduce(function (previous, key) {
+        return (
+          previous + (previous ? "&" : "") + key + "=" + urlVariables[key]
+        );
+      }, "");
+    }
+  });
+
+  /*
+  //WMSレイヤーの選択肢
+  var wmslayers = [
+    {id: "999999194", title: "共有空間_基本地図タイル"},
+    {id: "999999601", title: "共有空間_基本地図タイル淡色"},
+    {id: "999999601", title: "共有空間_基本地図タイルグレー"},
+    {id: "999999603", title: "共有空間_基本地図タイル白図"},
+    {id: "999999740", title: "航空写真_宮庄川"},
+    {id: "999999741", title: "航空写真_長良川"},
+    {id: "999999742", title: "航空写真_飛騨川"},
+    {id: "999999743", title: "航空写真_木曽川"},
+    {id: "999999744", title: "航空写真_揖斐川"},
+    {id: "5000212", title: "自然公園普通地域"},
+    {id: "5000213", title: "自然公園特別地域"},
+    {id: "5000214", title: "自然公園特別保護地区"},
+    {id: "5000215", title: "自然環境保全地域普通地区"},
+    {id: "5000216", title: "自然環境保全地域特別地区"},
+    {id: "5000217", title: "自然環境保全特別地区_野生動植物保護区"}
+  ];
+
+  var select = document.getElementById("selectLayer");
+
+  for(var i=0;i<wmslayers.length;i++){
+    let op = document.createElement("option");
+    op.value = wmslayers[i].id;
+    op.text = wmslayers[i].title;
+    select.appendChild(op);
+  }
+  */
+
+  var selectLayer = getWMSLayer("999999194", "長野市森林区域");
+
+  var map = new WebMap({
+    portalItem: {
+      //id: "ed698e1b3f054789aee3cc3afcfd8449"
+      id: "cb6b3b6b478d4d46b98073420a1196b5"
+    }
+  });
+
+  view = new MapView({
+    container: "viewDiv",
+    map: map,
+    center:  [138.1787833, 36.651282],
+    scale: 5000,
+    constraints: {
+      snapToZoom: true,
+      lods: [
+        {scale: 2500},
+        {scale: 5000},
+        {scale: 10000},
+        {scale: 20000},
+        {scale: 40000},
+        {scale: 80000},
+        {scale: 160000}
+      ]
+    }
+  });
+
+  map.layers.add(selectLayer, 0);
+
+  view.when(function () {
+    var layerList = new LayerList({
+      view: view
+    });
+    view.ui.add(layerList, "top-right");
+  });
+
+
+  function getWMSLayer(id, title){
+    var mapUrl = "https://wwwgis.pref.nagano.lg.jp/pref-nagano/Map/GetMapImage";
+
+    var wmsLayer = new CustomWMSLayer({
+      mapUrl: mapUrl,
+      mapParameters: {
+        pgFlg: "{pgFlg}",
+        iork: "{iork}",
+        tss: "{tss}",
+        prj: "{prj}",
+        cp: "{cp}",
+        mps: "{mps}",
+        siz: "{siz}",
+        dm: "{dm}",
+        xmin: "{xmin}",
+        xmax: "{xmax}",
+        ymin: "{ymin}",
+        ymax: "{ymax}",
+        img: "{img}",
+        mtp: "{mtp}"
+      },
+
+      title: title
+    });
+
+    return wmsLayer;
+  }
+  
+  
+  /*
+  document.getElementById("selectLayer").onchange = function (event) {
+    map.layers.remove(selectLayer);
+
+    selectLayer = getWMSLayer(event.target.value, event.target.selectedOptions[0].innerHTML);
+    map.layers.add(selectLayer, 0);
+  };
+  */
+
+});
+    </script>
+
+  
+
+</body>
+
+</html>
+ 
