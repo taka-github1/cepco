@@ -1,0 +1,361 @@
+
+
+<!DOCTYPE html>
+<html lang="en" >
+
+<head>
+
+  <meta charset="UTF-8">
+  
+<link rel="apple-touch-icon" type="image/png" href="https://cpwebassets.codepen.io/assets/favicon/apple-touch-icon-5ae1a0698dcc2402e9712f7d01ed509a57814f994c660df9f7a952f3060705ee.png" />
+<meta name="apple-mobile-web-app-title" content="CodePen">
+
+<link rel="shortcut icon" type="image/x-icon" href="https://cpwebassets.codepen.io/assets/favicon/favicon-aec34940fbc1a6e787974dcd360f2c6b63348d4b1f4e06c77743096d55480f33.ico" />
+
+<link rel="mask-icon" type="" href="https://cpwebassets.codepen.io/assets/favicon/logo-pin-8f3771b1072e3c38bd662872f6b673a722f4b3ca2421637d5596661b4e2132cc.svg" color="#111" />
+
+
+  <title>CodePen - 長野県GIS重ね合わせ</title>
+  
+  
+  
+  
+<style>
+html,
+body,
+#viewDiv {
+  padding: 0;
+  margin: 0;
+  height: 100%;
+  width: 100%;
+}
+
+#selectDiv {
+  background-color: lightyellow;
+  position: absolute;
+  padding: 10;
+  z-index: 99;
+  bottom: 20px;
+  height: 40px;
+  right: 10px;
+}
+</style>
+
+  
+  
+  
+  
+
+</head>
+
+<body translate="no" >
+  <html>
+  <head>
+
+    <title>中部電力サンプルアプリ</title>
+
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link
+          rel="stylesheet"
+          href="https://js.arcgis.com/4.18/esri/themes/light/main.css"
+          />
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://js.arcgis.com/4.18/"></script>
+  </head>
+  <body>
+    <div id="selectDiv" class="esri-widget">
+      <label id="theLabel">
+        レイヤー選択
+        <select id="selectLayer"></select>
+      </label>
+    </div>
+    <div id="viewDiv"></div>
+  </body>
+</html>
+  
+  
+      <script id="rendered-js" >
+var view = null;
+var tss = null;
+var selectLayer = null;
+
+var x_offset = 0.003;
+var y_offset = -0.003;
+var scale_offset = -1000;
+
+require([
+  "esri/config",
+  "esri/Basemap",
+  "esri/WebMap",
+  "esri/views/MapView",
+  "esri/layers/FeatureLayer",
+  "esri/layers/BaseDynamicLayer",
+  "esri/widgets/LayerList",
+  "esri/widgets/Search",
+  "esri/widgets/Home",
+  "esri/widgets/Slice",
+  "esri/geometry/projection",
+  "esri/geometry/SpatialReference",
+  "esri/core/urlUtils"
+], function (config, Basemap, WebMap, MapView, FeatureLayer, BaseDynamicLayer, LayerList, Search, Home, Slice, projection, SpatialReference, urlUtils) {
+
+  
+  
+  var saveParameterUrl = "https://wwwgis.pref.nagano.lg.jp/pref-nagano/Map/SaveParameter";
+  var getMapImageUrl = "https://wwwgis.pref.nagano.lg.jp/pref-nagano/Map/GetMapImage";
+      
+  var CustomLayer = BaseDynamicLayer.createSubclass({
+    
+    properties: {
+      mapUrl: null,
+      mapParameters: null
+    },
+    
+    getImageUrl: function (extent, width, height) {
+      var urlVariables = this._prepareQuery(
+        this.mapParameters,
+        extent,
+        width,
+        height
+      );
+      var queryString = this._joinUrlVariables(urlVariables);
+      return this.mapUrl + "?" + queryString;
+    },
+
+    _prepareQuery: function (queryParameters, extent, width, height) {
+
+      //緯度経度に投影変換
+      const cs1 = extent.spatialReference;
+      const cs2 = new SpatialReference({
+        wkid: 4326
+      });
+
+      const min_point = {
+        type: "point",
+        x: extent.xmin,
+        y: extent.ymin,
+        spatialReference: cs1
+      };
+      const max_point = {
+        type: "point",
+        x: extent.xmax,
+        y: extent.ymax,
+        spatialReference: cs1
+      };
+      var x = extent.xmin + (extent.xmax - extent.xmin) / 2;
+      var y = extent.ymin + (extent.ymax - extent.ymin) / 2;
+      
+      const center_point = {
+        type: "point",
+        x: x,
+        y: y,
+        spatialReference: cs1
+      };
+      
+      var geo_min = projection.project(min_point, cs2);
+      var geo_max = projection.project(max_point, cs2);
+      var geo_center = projection.project(center_point, cs2);
+      x = geo_center.x + x_offset;
+      y = geo_center.y + y_offset;
+     
+      var replacers = {
+        pgFlg: 0,
+        iork: false,
+        tss: tss,
+        prj: 1,
+        cp: x + ',' + y,
+        mps: view.scale + scale_offset,
+        siz: height + ',' + width,
+        dm: 0,
+        xmin: geo_min.x,
+        xmax: geo_max.x,
+        ymin: geo_min.y,
+        ymax: geo_max.y,
+        img: 3,
+        mtp: 'kiban'
+      };
+
+      var urlVariables = this._replace({}, queryParameters, replacers);
+      return urlVariables;
+    },
+
+    _replace: function (urlVariables, queryParameters, replacers) {
+      Object.keys(queryParameters).forEach(function (key) {
+        urlVariables[key] = Object.keys(replacers).reduce(
+          function (previous, replacerKey) {
+            return previous.replace(
+              "{" + replacerKey + "}",
+              replacers[replacerKey]
+            );
+          },
+          queryParameters[key]);
+      });
+
+      return urlVariables;
+    },
+
+    _joinUrlVariables: function (urlVariables) {
+      return Object.keys(urlVariables).reduce(function (previous, key) {
+        return (
+          previous + (previous ? "&" : "") + key + "=" + urlVariables[key]
+        );
+      }, "");
+    }
+  });
+
+  
+  //レイヤーの選択肢
+  var parentlayers = [
+    {id: "110200", title: "森林情報：森林区域（長野市）"},
+    {id: "110216", title: "森林情報：森林区域（千曲市）"},
+    {id: "100783", title: "自然環境：自然公園"},
+    {id: "60011", title: "用途地域等（都市計画法ほか）：用途地域"},
+  ];
+
+  var select = document.getElementById("selectLayer");
+
+  for(var i=0;i<parentlayers.length;i++){
+    let op = document.createElement("option");
+    op.value = parentlayers[i].id;
+    op.text = parentlayers[i].title;
+    select.appendChild(op);
+  }
+
+  var viewDiv = $('#viewDiv');
+  saveParameter("110200", viewDiv.width(), viewDiv.height());
+  selectLayer = getMapImageLayer("森林情報：森林区域");
+
+  //WebMapの読み込み
+  var map = new WebMap({
+    portalItem: {
+      id: "ed698e1b3f054789aee3cc3afcfd8449"  //地形図
+      //id: "cb6b3b6b478d4d46b98073420a1196b5"  //地理院地図
+    }
+  });
+
+  //MapView初期化
+  view = new MapView({
+    container: "viewDiv",
+    map: map,
+    center:  [138.1787833, 36.651282],
+    scale: 5000,
+    constraints: {
+      snapToZoom: true,
+      lods: [
+        {scale: 2500},
+        {scale: 5000},
+        {scale: 10000},
+        {scale: 20000},
+        {scale: 40000},
+        {scale: 80000},
+        {scale: 160000}
+      ]
+    }
+  });
+  
+  var homeWidget = new Home({
+    view: view
+  });
+  view.ui.add(homeWidget, "top-left");
+
+  var searchWidget = new Search({
+    view: view,
+    popupEnabled: false
+  });
+  view.ui.add(searchWidget, "bottom-left");
+
+  view.when(function () {
+    var viewDiv = $('#viewDiv');
+    saveParameter("110200", viewDiv.width(), viewDiv.height());
+    selectLayer = getMapImageLayer("森林情報：森林区域（長野市）");
+
+    map.layers.add(selectLayer, 0);
+
+    var layerList = new LayerList({
+      view: view,
+      listItemCreatedFunction: function(event) {
+        const item = event.item;
+        if (item.layer.type != "group") {
+          // don't show legend twice
+          item.panel = {
+            content: "legend",
+            open: true
+          };
+        }
+  }
+    });
+    view.ui.add(layerList, "top-right");
+  });
+
+  async function saveParameter(mtl, width, height) {
+    var form = new FormData();
+    form.set('mps', view.scale + scale_offset);
+    form.set('siz', height + ',' + width);
+    form.set('mtl', mtl);
+    form.set('mtp', 'kiban');
+
+    await $.ajax({
+      url: saveParameterUrl,
+      type: "POST",
+      data: form,
+      processData: false,
+      contentType: false,
+      dataType: 'json',
+      async: false
+    }).done(function(data) {
+      tss = data['JsonResult']['id'];
+    }).fail(function(data) {
+      console.log(data);
+    });
+
+  }
+
+  function getMapImageLayer(title){
+    var customLayer = new CustomLayer({
+      mapUrl: getMapImageUrl,
+      mapParameters: {
+        pgFlg: "{pgFlg}",
+        iork: "{iork}",
+        tss: "{tss}",
+        prj: "{prj}",
+        cp: "{cp}",
+        mps: "{mps}",
+        siz: "{siz}",
+        dm: "{dm}",
+        xmin: "{xmin}",
+        xmax: "{xmax}",
+        ymin: "{ymin}",
+        ymax: "{ymax}",
+        img: "{img}",
+        mtp: "{mtp}"
+      },
+
+      title: title
+    });
+
+    return customLayer;
+  }
+  
+  
+  
+  document.getElementById("selectLayer").onchange = function (event) {
+    map.layers.remove(selectLayer);
+    
+    var viewDiv = $('#viewDiv');
+    saveParameter(event.target.value, viewDiv.width(), viewDiv.height());
+    
+    selectLayer = getMapImageLayer(event.target.selectedOptions[0].innerHTML);
+    map.layers.add(selectLayer, 0);
+  };
+
+});
+    </script>
+
+  
+
+</body>
+
+</html>
+ 
