@@ -1,19 +1,12 @@
 
 
 <!DOCTYPE html>
-<html lang="en" >
+<html lang="ja" >
 
 <head>
 
   <meta charset="UTF-8">
   
-<link rel="apple-touch-icon" type="image/png" href="https://cpwebassets.codepen.io/assets/favicon/apple-touch-icon-5ae1a0698dcc2402e9712f7d01ed509a57814f994c660df9f7a952f3060705ee.png" />
-<meta name="apple-mobile-web-app-title" content="CodePen">
-
-<link rel="shortcut icon" type="image/x-icon" href="https://cpwebassets.codepen.io/assets/favicon/favicon-aec34940fbc1a6e787974dcd360f2c6b63348d4b1f4e06c77743096d55480f33.ico" />
-
-<link rel="mask-icon" type="" href="https://cpwebassets.codepen.io/assets/favicon/logo-pin-8f3771b1072e3c38bd662872f6b673a722f4b3ca2421637d5596661b4e2132cc.svg" color="#111" />
-
 
   <title>CodePen - 長野県GIS重ね合わせ</title>
   
@@ -208,10 +201,14 @@ require([
   
   //レイヤーの選択肢
   var parentlayers = [
+    {id: "60011", title: "用途地域等（都市計画法ほか）：用途地域"},
     {id: "110200", title: "森林情報：森林区域（長野市）"},
     {id: "110216", title: "森林情報：森林区域（千曲市）"},
-    {id: "100783", title: "自然環境：自然公園"},
-    {id: "60011", title: "用途地域等（都市計画法ほか）：用途地域"},
+    {id: "40001,40002,40003", title: "観光：史跡、名勝、天然記念物"},
+    {id: "20003", title: "防災：砂防指定地（砂防法）"},
+    {id: "20008,20009,20007", title: "防災：地すべり防止区域（地すべり等防止法）"},
+    {id: "20002", title: "防災：急傾斜地崩壊危険区域（急傾斜地法）"}
+    
   ];
 
   var select = document.getElementById("selectLayer");
@@ -268,8 +265,8 @@ require([
 
   view.when(function () {
     var viewDiv = $('#viewDiv');
-    saveParameter("110200", viewDiv.width(), viewDiv.height());
-    selectLayer = getMapImageLayer("森林情報：森林区域（長野市）");
+    saveParameter(parentlayers[0].id, viewDiv.width(), viewDiv.height());
+    selectLayer = getMapImageLayer(parentlayers[0].title);
 
     map.layers.add(selectLayer, 0);
 
@@ -281,7 +278,7 @@ require([
           // don't show legend twice
           item.panel = {
             content: "legend",
-            open: true
+            open: false
           };
         }
   }
