@@ -1,7 +1,7 @@
 
 
 <!DOCTYPE html>
-<html lang="en" >
+<html lang="ja" >
 
 <head>
 
@@ -10,24 +10,38 @@
 <link rel="apple-touch-icon" type="image/png" href="https://cpwebassets.codepen.io/assets/favicon/apple-touch-icon-5ae1a0698dcc2402e9712f7d01ed509a57814f994c660df9f7a952f3060705ee.png" />
 <meta name="apple-mobile-web-app-title" content="CodePen">
 
-<link rel="shortcut icon" type="image/x-icon" href="https://cpwebassets.codepen.io/assets/favicon/favicon-aec34940fbc1a6e787974dcd360f2c6b63348d4b1f4e06c77743096d55480f33.ico" />
-
-<link rel="mask-icon" type="" href="https://cpwebassets.codepen.io/assets/favicon/logo-pin-8f3771b1072e3c38bd662872f6b673a722f4b3ca2421637d5596661b4e2132cc.svg" color="#111" />
-
-
-  <title>CodePen - 愛知県WMS_3.37</title>
+  <title>愛知県WMS_3.37</title>
   
   
   
   
 <style>
-html,
-body,
-#map {
-  overflow-x: hidden;
-  overflow-y: hidden;
+html, body, .container{
   width: 100%;
   height: 100%;
+  display: flex;
+}
+#map {
+  width: 100%;
+  height: 100%;
+  padding:0;
+}
+#layerListPane{
+  width:25%;
+}
+.esriLayer{
+  background-color: #fff;
+}
+
+.esriLayerList .esriList{
+  border-top:none;
+}
+.esriLayerList .esriTitle {
+  background-color: #fff;
+  border-bottom:none;
+}
+.esriLayerList .esriList ul{
+  background-color: #fff;
 }
 </style>
 
@@ -50,13 +64,15 @@ body,
     <link rel="stylesheet" href="https://js.arcgis.com/3.37/esri/css/esri.css">
 
     <script src="https://js.arcgis.com/3.37/" data-dojo-config="async:true"></script>
-    <script>
-
-
-    </script>
+    <script>var dojoConfig = { parseOnLoad: true };</script>
   </head>
 
   <body>
+    <div class="container" data-dojo-type="dijit/layout/BorderContainer"
+data-dojo-props="design:'headline',gutters:false">
+    <div id="layerListPane" data-dojo-type="dijit/layout/ContentPane" data-dojo-props="region:'right'">
+      <div id="layerList"></div>
+    </div>
     <div id="map"></div>
   </body>
 
@@ -88,6 +104,12 @@ require([
         ) {
   ready(function () {
     arcgisUtils.createMap("904dbb17f1d74c3baf59d5ee93fb8982", "map").then(function(response){
+      var layerWidget = new LayerList({
+        map: response.map,
+        layers: arcgisUtils.getLayerList(response),
+        showLegend: true
+      },"layerList");
+      layerWidget.startup();
     });
   });
 });
