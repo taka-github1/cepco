@@ -1,0 +1,95 @@
+
+
+<!DOCTYPE html>
+<html lang="en" >
+
+<head>
+
+  <meta charset="UTF-8">
+  <title>愛知県WMS_4.20</title>
+  
+  
+  
+  
+
+  
+  
+  
+  
+
+</head>
+
+<body translate="no" >
+  <html>
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="initial-scale=1,maximum-scale=1,user-scalable=no"
+    />
+<title>中部電力　WMSLayerテスト</title>
+
+    <style>
+      html,
+      body,
+      #viewDiv {
+        padding: 0;
+        margin: 0;
+        height: 100%;
+        width: 100%;
+      }
+    </style>
+
+    <link
+      rel="stylesheet"
+      href="https://js.arcgis.com/4.21/esri/themes/light/main.css"
+    />
+    <script src="https://js.arcgis.com/4.21/"></script>
+
+    <script>
+      require([
+        "esri/config",
+        "esri/WebMap",
+        "esri/views/MapView",
+        "esri/layers/Layer",
+        "esri/layers/WMSLayer",
+        "esri/widgets/LayerList",
+        "esri/geometry/SpatialReference"
+      ], function (config, WebMap, MapView, Layer, WMSLayer, LayerList, SpatialReference) {
+
+        var map = new WebMap({
+          portalItem: {
+            id: "904dbb17f1d74c3baf59d5ee93fb8982"
+          } 
+        });
+
+        var view = new MapView({
+          container: "viewDiv",
+          map: map
+        });
+        
+        
+        view.when(function () {
+          var layerList = new LayerList({
+            view: view
+          });
+          view.ui.add(layerList, "bottom-left");
+        });
+
+
+      });
+    </script>
+  </head>
+  <body>
+    <div id="viewDiv"></div>
+  </body>
+</html>
+  
+  
+  
+  
+
+</body>
+
+</html>
+ 
