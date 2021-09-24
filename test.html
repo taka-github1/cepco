@@ -1,0 +1,173 @@
+
+
+<!DOCTYPE html>
+<html lang="en" >
+
+<head>
+
+  <meta charset="UTF-8">
+  
+<link rel="apple-touch-icon" type="image/png" href="https://cpwebassets.codepen.io/assets/favicon/apple-touch-icon-5ae1a0698dcc2402e9712f7d01ed509a57814f994c660df9f7a952f3060705ee.png" />
+<meta name="apple-mobile-web-app-title" content="CodePen">
+
+<link rel="shortcut icon" type="image/x-icon" href="https://cpwebassets.codepen.io/assets/favicon/favicon-aec34940fbc1a6e787974dcd360f2c6b63348d4b1f4e06c77743096d55480f33.ico" />
+
+<link rel="mask-icon" type="" href="https://cpwebassets.codepen.io/assets/favicon/logo-pin-8f3771b1072e3c38bd662872f6b673a722f4b3ca2421637d5596661b4e2132cc.svg" color="#111" />
+
+
+  <title>CodePen - 愛知県WMS追加検証</title>
+  
+  
+  
+  
+
+  
+  
+  
+  
+
+</head>
+
+<body translate="no" >
+  <html lang="en" >
+
+<head>
+
+  <meta charset="UTF-8">
+
+  <title>愛知県重ね合わせ</title>
+
+</head>
+
+<body translate="no" >
+  <html>
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="initial-scale=1,maximum-scale=1,user-scalable=no"
+    />
+    <meta name="referrer" content="no-referrer-when-downgrade">
+<title>中部電力　WMSLayerテスト</title>
+
+    <style>
+      html,
+      body,
+      #viewDiv {
+        padding: 0;
+        margin: 0;
+        height: 100%;
+        width: 100%;
+      }
+    </style>
+
+    <link
+      rel="stylesheet"
+      href="https://js.arcgis.com/4.21/esri/themes/light/main.css"
+    />
+    <script src="https://js.arcgis.com/4.21/"></script>
+
+    <script>
+      require([
+        "esri/identity/OAuthInfo",
+        "esri/config",
+        "esri/core/urlUtils",   
+        "esri/WebMap",
+        "esri/views/MapView",
+        "esri/layers/Layer",
+        "esri/layers/WMSLayer",
+        "esri/widgets/LayerList",
+        "esri/geometry/SpatialReference"
+      ], function (OAuthInfo, config, urlUtils, WebMap, MapView, Layer, WMSLayer, LayerList, SpatialReference) {
+        var info = new OAuthInfo({
+          appId: "SxdGUquEWsAk9uQJ",
+          popup: false
+        });
+        var map = new WebMap({
+          portalItem: {
+            id: "ed698e1b3f054789aee3cc3afcfd8449"
+            //id: "904dbb17f1d74c3baf59d5ee93fb8982"
+          } 
+        });
+
+        var view = new MapView({
+          container: "viewDiv",
+          map: map
+        });
+
+        /*
+        config.request.proxyRules = {
+          //urlPrefix: "https://profile.maps.pref.aichi.jp",
+          proxyUrl: "https://www.arcgis.com/sharing/proxy"
+        }
+        */
+        
+        
+        config.request.proxyUrl = "https://www.arcgis.com/sharing/proxy";
+        //config.request.trustedServers.push("https://codepen.io/");
+        /*
+        config.request.interceptors.push({
+          //urls: "https://profile.maps.pref.aichi.jp",
+          headers: {
+            //'Access-Control-Allow-Origin': "https://profile.maps.pref.aichi.jp",
+            //'access-control-allow-headers': "Origin, Authorization, Accept, Content-Type, x-requested-with, Cache-Control, X-CSRF-Token, X-File-Name, X-File-Size, X-File-Type, Set-Cookie, withcredentials",
+            //'access-control-allow-credentials': true,
+            'Access-Control-Allow-Origin': "https://cdpn.io",
+            //'Referer': 'https://ej-nagoya.maps.arcgis.com',
+          }
+        });
+        */
+
+        /*
+        urlUtils.addProxyRule({
+          //urlPrefix: "www.gis.pref.shizuoka.jp", 
+          proxyUrl: "https://www.arcgis.com/sharing/proxy"
+        });
+        */
+
+        view.when(function () {
+          let wmslayer = new WMSLayer({
+          
+          portalItem: {
+            id: "a3208e7739f9436f8b81843bbfe98021"
+          },
+          /*
+          url: "https://profile.maps.pref.aichi.jp/map/wms?cid=1&mid=20121&width=1320&height=788&bbox=15254315.75414139%2C4098662.968534558%2C15355212.631477688%2C4158895.346823196&srs=EPSG%3A900913&format=image%2Fpng&request=GetMap&service=WMS&styles=&transparent=true&version=1.1.1&layers=%0Ac204171%2C%0Ac204172%2C%0Ac204173",
+            //type: "wms",
+            title: "特別地域・第１種"
+            */
+          });
+
+          map.layers.add(wmslayer, 0);
+          
+          var layerList = new LayerList({
+            view: view
+          });
+          view.ui.add(layerList, "bottom-left");
+        });
+
+
+      });
+    </script>
+  </head>
+  <body>
+    <div id="viewDiv"></div>
+  </body>
+</html>
+  
+  
+  
+  
+
+</body>
+
+</html>
+  
+  
+  
+  
+
+</body>
+
+</html>
+ 
