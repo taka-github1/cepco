@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="ja" >
+
+<head>
+
+  <meta charset="UTF-8">
+  
+  <title>都道府県オープンデータ閲覧アプリ</title>
+  
+  
+  
+  
+<style>
+html,
+body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden
+}
+
+.tab-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  flex: 1 1 100%;
+}
+.tab-wrap:after {
+  content: '';
+  width: 100%;
+  height: 3px;
+  background: #325A8C;
+  display: block;
+  order: -1;
+}
+.tab-label {
+  height: 30px;
+  color: White;
+  background: LightGray;
+  font-weight: bold;
+  white-space: nowrap;
+  text-align: center;
+  padding: 10px .5em;
+  order: -1;
+  position: relative;
+  z-index: 1;
+  cursor: pointer;
+  border-radius: 5px 5px 0 0;
+  flex: 1;
+}
+.tab-label:not(:last-of-type) {
+  margin-right: 0px;
+}
+.tab-content {
+  display: none;
+}
+.tab-switch:checked+.tab-label {
+  background: #325A8C;
+}
+.tab-switch:checked+.tab-label+.tab-content {
+  width: 100%;
+  height: 90vh;
+  overflow: auto;
+  display: block;
+  transition: .5s opacity;
+  box-shadow: 0 0 3px rgba(0, 0, 0, 0.3);
+}
+.tab-switch {
+  display: none;
+}
+
+.map-view {
+  padding: 0;
+  margin: 0;
+  height: 100%;
+  width: 100%;
+}
+</style>
+
+  
+  
+  
+  
+
+</head>
+
+<body translate="no" >
+  <html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1,user-scalable=no" />
+    <title>都道府県オープンデータ閲覧アプリ</title>
+    <link rel="stylesheet" href="https://js.arcgis.com/4.21/esri/themes/light/main.css" />
+    <script src="https://js.arcgis.com/4.21/"></script>
+  </head>
+  <body>
+    <div class="tab-wrap">
+      <input id="tab01" type="radio" name="tab" class="tab-switch" checked="checked"><label class="tab-label" for="tab01">愛知県</label>
+      <div class="tab-content">
+        <div id="aichi_viewDiv" class="map-view"></div> 
+      </div>
+      <input id="tab02" type="radio" name="tab" class="tab-switch"><label class="tab-label" for="tab02">三重県</label>
+      <div class="tab-content">
+        <div id="mie_viewDiv" class="map-view"></div> 
+      </div>
+      <input id="tab03" type="radio" name="tab" class="tab-switch"><label class="tab-label" for="tab03">長野県</label>
+      <div class="tab-content">
+        <div id="nagano_viewDiv" class="map-view"></div> 
+      </div>
+      <input id="tab04" type="radio" name="tab" class="tab-switch"><label class="tab-label" for="tab04">静岡県</label>
+      <div class="tab-content">
+        工事中
+      </div>
+    </div>
+  </body>
+</html>
+  
+  
+      <script id="rendered-js" >
+const application_id = "IWl5afxdXoN4GCgF";
+const aichi_webmap_id = "f8522d6efce94fe68cb35416672ff0b5";
+const mie_webmap_id = "3ccc120242ab419a804c6286b2d4f470";
+const nagano_webmap_id = "25b8a8588f9b48c386fdda72e5fc6056";
+
+require([
+  "esri/portal/Portal",
+  "esri/identity/OAuthInfo",
+  "esri/identity/IdentityManager",
+  "esri/WebMap",
+  "esri/views/MapView",
+  "esri/widgets/Home",
+  "esri/widgets/Expand",
+  "esri/widgets/BasemapGallery",
+  "esri/widgets/LayerList",
+  "esri/widgets/Print"
+], (Portal, OAuthInfo, identityManager, WebMap, MapView, Home, Expand, BasemapGallery, LayerList, Print) => {
+  
+  var portalUrl =  "https://www.arcgis.com/sharing";
+
+  var info = new OAuthInfo({
+    appId: application_id,
+    popup: false
+  });
+  identityManager.registerOAuthInfos([info]);
+  identityManager.getCredential(portalUrl);
+    
+  //愛知県マップの初期化
+  const aichi_map = new WebMap({
+    portalItem: {
+      id: aichi_webmap_id
+    }
+  });
+
+  const aichi_view = new MapView({
+    container: "aichi_viewDiv",
+    map: aichi_map
+  });
+
+  aichi_view.when(() => {
+    widgetAdd(aichi_view);
+  });
+  
+  //三重県マップの初期化
+  const mie_map = new WebMap({
+    portalItem: {
+      id: mie_webmap_id
+    }
+  });
+
+  const mie_view = new MapView({
+    container: "mie_viewDiv",
+    map: mie_map
+  });
+
+  mie_view.when(() => {
+    widgetAdd(mie_view);
+  });
+  
+  //長野県マップの初期化
+  const nagano_map = new WebMap({
+    portalItem: {
+      id: nagano_webmap_id
+    }
+  });
+
+  const nagano_view = new MapView({
+    container: "nagano_viewDiv",
+    map: nagano_map
+  });
+
+  nagano_view.when(() => {
+    widgetAdd(nagano_view);
+  });
+  
+  //ウィジェットの追加処理
+  function widgetAdd(mapviewDiv) {
+    let homeWidget = new Home({
+      view: mapviewDiv
+    });
+    mapviewDiv.ui.add(homeWidget, "top-left");
+
+    const layerList = new LayerList({
+      view: mapviewDiv,
+      listItemCreatedFunction: (event) => {
+        const item = event.item;
+        if (item.layer.type != "group") {
+          item.panel = {
+            content: "legend",
+            open: false
+          };
+        }
+      }
+    });
+
+    const lyrExpand = new Expand({
+      view: mapviewDiv,
+      content: layerList,
+      expanded: true
+    });
+    mapviewDiv.ui.add(lyrExpand, "top-right");
+
+    const print = new Print({
+      view: mapviewDiv,
+      printServiceUrl:  "https://utility.arcgisonline.com/arcgis/rest/services/Utilities/PrintingTools/GPServer/Export%20Web%20Map%20Task",
+      allowedLayouts: ["a3-landscape", "a3-portrait", "a4-landscape", "a4-portrait"],
+      allowedFormats: ["pdf", "png32", "png8", "jpg", "gif", "svg"],
+      templateOptions: {
+        dpi: 200
+      }
+    });
+
+    const prExpand = new Expand({
+      view: mapviewDiv,
+      content: print
+    });
+    mapviewDiv.ui.add(prExpand, "bottom-right");
+
+    const basemapGallery = new BasemapGallery({
+      view: mapviewDiv,
+      container: document.createElement("div")
+    });
+
+    const bgExpand = new Expand({
+      view: mapviewDiv,
+      content: basemapGallery
+    });
+    mapviewDiv.ui.add(bgExpand, "bottom-right");
+  }
+});
+    </script>
+
+  
+
+</body>
+
+</html>
+ 
