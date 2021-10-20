@@ -1,14 +1,13 @@
+
+
 <!DOCTYPE html>
 <html lang="ja" >
 
 <head>
 
   <meta charset="UTF-8">
-  
-  <title>都道府県オープンデータ閲覧アプリ</title>
-  
-  
-  
+  <title>都道府県オープンデータ閲覧アプリ_v01</title>
+
   
 <style>
 html,
@@ -73,6 +72,11 @@ body {
   height: 100%;
   width: 100%;
 }
+
+.layerListInfo {
+  font-size: 9px !important;
+  text-align: center;
+}
 </style>
 
   
@@ -116,9 +120,17 @@ body {
   
       <script id="rendered-js" >
 const application_id = "IWl5afxdXoN4GCgF";
+
+//Web Map ID
 const aichi_webmap_id = "f8522d6efce94fe68cb35416672ff0b5";
 const mie_webmap_id = "3ccc120242ab419a804c6286b2d4f470";
 const nagano_webmap_id = "25b8a8588f9b48c386fdda72e5fc6056";
+
+//地震震源・震度レイヤー
+const earthquake_layerurls = [
+  "https://services.arcgis.com/wlVTGRSYTzAbjjiC/arcgis/rest/services/seismic_city_jma/FeatureServer",
+  "https://services.arcgis.com/wlVTGRSYTzAbjjiC/arcgis/rest/services/hypocenter_jma_view/FeatureServer"
+]
 
 require([
   "esri/portal/Portal",
@@ -134,14 +146,14 @@ require([
 ], (Portal, OAuthInfo, identityManager, WebMap, MapView, Home, Expand, BasemapGallery, LayerList, Print) => {
   
   var portalUrl =  "https://www.arcgis.com/sharing";
-
+  
   var info = new OAuthInfo({
     appId: application_id,
     popup: false
   });
   identityManager.registerOAuthInfos([info]);
   identityManager.getCredential(portalUrl);
-    
+  
   //愛知県マップの初期化
   const aichi_map = new WebMap({
     portalItem: {
@@ -155,7 +167,8 @@ require([
   });
 
   aichi_view.when(() => {
-    widgetAdd(aichi_view);
+    earthquake_layerFiltering(aichi_view);
+    widgetAdd(aichi_view, "愛知県");
   });
   
   //三重県マップの初期化
@@ -171,7 +184,8 @@ require([
   });
 
   mie_view.when(() => {
-    widgetAdd(mie_view);
+    earthquake_layerFiltering(mie_view);
+    widgetAdd(mie_view, "三重県");
   });
   
   //長野県マップの初期化
@@ -187,11 +201,32 @@ require([
   });
 
   nagano_view.when(() => {
-    widgetAdd(nagano_view);
+    earthquake_layerFiltering(nagano_view);
+    widgetAdd(nagano_view, "長野県");
   });
   
+  //震源・震度レイヤーを今日だけのデータにフィルターする
+  function earthquake_layerFiltering(mapviewDiv){
+    var dt = new Date();
+    var y = dt.getFullYear();
+    var m = ("00" + (dt.getMonth()+1)).slice(-2);
+    var d = ("00" + dt.getDate()).slice(-2);
+    var str_today = y + "-" + m + "-" + d;
+
+    var layers = mapviewDiv.map.allLayers;
+    
+    if (layers == null) return;
+    
+    for (var i = 0; i<layers.items.length; i++) {
+      if (earthquake_layerurls.indexOf(layers.items[i].url) !== -1) {
+        layers.items[i].definitionExpression = "OriginTime LIKE '" + str_today + "%'";
+      }
+    }
+    
+  }
+  
   //ウィジェットの追加処理
-  function widgetAdd(mapviewDiv) {
+  function widgetAdd(mapviewDiv, title) {
     let homeWidget = new Home({
       view: mapviewDiv
     });
@@ -202,8 +237,15 @@ require([
       listItemCreatedFunction: (event) => {
         const item = event.item;
         if (item.layer.type != "group") {
+          var infoHTML = ""
+          if (item.layer.portalItem != null) {
+            var id = item.layer.portalItem.id;
+            var url = "https://www.maps.arcgis.com/home/item.html?id=" + id;
+            infoHTML = '<a href="' + url + '" target="_blank"><div class="esri-icon-lightbulb layerListInfo"/>レイヤー情報</div></a>'
+          }
+          
           item.panel = {
-            content: "legend",
+            content: ["legend", infoHTML],
             open: false
           };
         }
@@ -223,6 +265,7 @@ require([
       allowedLayouts: ["a3-landscape", "a3-portrait", "a4-landscape", "a4-portrait"],
       allowedFormats: ["pdf", "png32", "png8", "jpg", "gif", "svg"],
       templateOptions: {
+        title: title + "マップ",
         dpi: 200
       }
     });
