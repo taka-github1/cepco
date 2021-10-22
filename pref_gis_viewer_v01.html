@@ -8,7 +8,6 @@
   <meta charset="UTF-8">
   <title>都道府県オープンデータ閲覧アプリ_v01</title>
 
-  
 <style>
 html,
 body {
@@ -111,7 +110,7 @@ body {
       </div>
       <input id="tab04" type="radio" name="tab" class="tab-switch"><label class="tab-label" for="tab04">静岡県</label>
       <div class="tab-content">
-        工事中
+        <div id="shizuoka_viewDiv" class="map-view"></div> 
       </div>
     </div>
   </body>
@@ -125,6 +124,7 @@ const application_id = "IWl5afxdXoN4GCgF";
 const aichi_webmap_id = "f8522d6efce94fe68cb35416672ff0b5";
 const mie_webmap_id = "3ccc120242ab419a804c6286b2d4f470";
 const nagano_webmap_id = "25b8a8588f9b48c386fdda72e5fc6056";
+const shizuoka_webmap_id = "184408a598c440c49742dbc95a28f1ae";
 
 //地震震源・震度レイヤー
 const earthquake_layerurls = [
@@ -205,6 +205,23 @@ require([
     widgetAdd(nagano_view, "長野県");
   });
   
+  //静岡県マップの初期化
+  const shizuoka_map = new WebMap({
+    portalItem: {
+      id: shizuoka_webmap_id
+    }
+  });
+
+  const shizuoka_view = new MapView({
+    container: "shizuoka_viewDiv",
+    map: shizuoka_map
+  });
+
+  shizuoka_view.when(() => {
+    earthquake_layerFiltering(shizuoka_view);
+    widgetAdd(shizuoka_view, "静岡県");
+  });
+  
   //震源・震度レイヤーを今日だけのデータにフィルターする
   function earthquake_layerFiltering(mapviewDiv){
     var dt = new Date();
@@ -222,7 +239,6 @@ require([
         layers.items[i].definitionExpression = "OriginTime LIKE '" + str_today + "%'";
       }
     }
-    
   }
   
   //ウィジェットの追加処理
