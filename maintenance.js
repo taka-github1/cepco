@@ -17,7 +17,7 @@ require([
   "esri/widgets/BasemapGallery"]
         , function(Portal, OAuthInfo, IdentityManager, WebMap, MapView, FeatureLayer, Point, Circle, Graphic, geometryEngine, watchUtils, Home, Search, Expand, Legend, BasemapGallery) {
 
-  var application_id = "1uphdeyBVQOQMIw5";
+  var application_id = "MCubDzQZqCpjC3Ca";
   var token = "";
   
   var portalUrl =  "https://www.arcgis.com/sharing";
@@ -64,13 +64,13 @@ require([
 
   const main_map = new WebMap({
     portalItem:{
-      id: "fee50da81ded46b690f6248fca557017"
+      id: "85f8756ee7bf48dc8387325bc1b0b8bf"
     }
   });
   
   const child_map = new WebMap({
     portalItem:{
-      id: "67fa0b94b87f43fbb6eaf8b1a207379d"
+      id: "350be56fd25e4078bcdb34b2c2b7a3c8"
     }
   });
 
