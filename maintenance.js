@@ -817,7 +817,7 @@ require([
     if (features.length > 0) {
       var no = features[0].attributes["max_orderNo"];
       if (no != null) {
-        orderNo = no + 1;
+        orderNo = Number(no) + 1;
       }
     }
     
