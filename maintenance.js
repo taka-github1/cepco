@@ -967,6 +967,7 @@ require([
     document.getElementById('t2_expirykubun').value = "指定なし";
     document.getElementById('t2_expiryselect').value = "1日後";
     document.getElementById('t2_expirydate').value = getAddDate(1);
+    document.getElementById('t2_expirydate').hidden = true;
     document.getElementById('t2_teaminal_id').value = "";
     
     //$('#submitDiv').hide();
