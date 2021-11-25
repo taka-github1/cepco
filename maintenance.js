@@ -520,7 +520,7 @@ require([
   $('#t2_expiryselect').on("change", function(event){
     var t2_expiryselect = document.getElementById('t2_expiryselect').value;
     
-    document.getElementById('t2_expirydate').style.visibility ="hidden";
+    document.getElementById('t2_expirydate').hidden = true;
     if (t2_expiryselect == "1日後") {
       document.getElementById('t2_expirydate').value = getAddDate(1);
     } else if (t2_expiryselect == "1週間後") {
@@ -529,7 +529,7 @@ require([
       document.getElementById('t2_expirydate').value = getAddDate(30);
     } else if (t2_expiryselect == "カスタム") {
       document.getElementById('t2_expirydate').value = getAddDate(1);
-      document.getElementById('t2_expirydate').style.visibility ="visible";
+      document.getElementById('t2_expirydate').hidden = false;
     }
   });
 
