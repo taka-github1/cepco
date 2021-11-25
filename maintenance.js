@@ -942,6 +942,13 @@ require([
     main_mapview.graphics.removeAll();
     current_centerPoint = null;
     
+    if (id == 1) {
+      $('#tab01')[0].checked = true;
+    } else if (id == 2) {
+      $('#tab02')[0].checked = true;
+    } else if (id == 3) {
+      $('#tab03')[0].checked = true;
+    }
     
     //指令登録タブのクリア
     query_intrfeatures();
