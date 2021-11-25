@@ -314,7 +314,7 @@ require([
     //$('#submitDiv').show();
   }
   
-  //指令を抽出して表示
+  //指示を抽出して表示
   async function query_intrfeatures() {
 
     var results = await getOrderList();
@@ -352,7 +352,7 @@ require([
       const label = document.createElement("label");
       label.for = "radio_" + orderNo;
       var content = "";
-      content += "指令No.\t" + orderNo + "\t";
+      content += "指示No.\t" + orderNo + "\t";
       content += instruction + "\n";
       content += expirykubun + "\t件数\t" + count;
       label.textContent = content;
@@ -468,27 +468,27 @@ require([
     }
   });
   
-  //指令確認タブ　指示内容変更時
+  //指示確認タブ　指示内容変更時
   $('#t1_instruction').on("change", function(event){
     query_intrfeatures();
   });
   
-  //指令確認タブ　いつまで変更時
+  //指示確認タブ　いつまで変更時
   $('#t1_expirykubun').on("change", function(event){
     query_intrfeatures();
   });
   
-  //指令確認タブ　オーダー期限変更時
+  //指示確認タブ　オーダー期限変更時
   $('#t1_datetimeselect').on("change", function(event){
     query_intrfeatures();
   });
   
-  //指令確認タブ　端末ID変更時
+  //指示確認タブ　端末ID変更時
   $('#t1_teaminal_id').on("change", function(event){
     query_intrfeatures();
   });
   
-  //指令登録タブ　指示方法変更
+  //指示登録タブ　指示方法変更
   $('#t2_instructionselect').on("change", function(event){
     var t2_instructionselect = document.getElementById('t2_instructionselect').value;
     if (t2_instructionselect == "通常") {
@@ -502,12 +502,12 @@ require([
     reset_form(2);
   });
   
-  //指令登録タブ　クリアボタンクリック時
+  //指示登録タブ　クリアボタンクリック時
   $('#t2_clear').on("click", function(event){
     reset_form(2);
   });
 
-  //指令登録タブ　半径の指定変更
+  //指示登録タブ　半径の指定変更
   $('#t2_radius-slider').on("change", function(event){
     document.getElementById('t2_radius-value').innerText = event.target.value;
     
@@ -516,7 +516,7 @@ require([
     }
   });
   
-  //指令登録タブ　オーダー期限変更時
+  //指示登録タブ　オーダー期限変更時
   $('#t2_expiryselect').on("change", function(event){
     var t2_expiryselect = document.getElementById('t2_expiryselect').value;
     
@@ -533,7 +533,7 @@ require([
     }
   });
 
-  //指令登録タブ　指示登録ボタンクリック
+  //指示登録タブ　指示登録ボタンクリック
   $('#t2_submit').on("click", async function(event){
     
     if (current_centerPoint == null) {
@@ -662,7 +662,7 @@ require([
     return features;
   }
   
-  //指令登録処理
+  //指示登録処理
   function add_feature(features) {
     var url = requestLayer.url + "/" + requestLayer.layerId + "/addFeatures";
 
