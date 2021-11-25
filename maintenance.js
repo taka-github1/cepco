@@ -856,7 +856,19 @@ require([
     
     if (filterselect == "空間条件") {
       var geometrys = await getFacilityGeometry(selectLayer);
-      query.geometry = geometryEngine.union(geometrys);
+      
+      var unions = [];
+      const page = Math.ceil(geometrys.length / 2000);
+      for (var i=0;i<page;i++) {
+        let start = i * 2000;
+        let end = (i + 1) * 2000;
+        if (end > geometrys.length) {
+          end = geometrys.length;
+        }
+        unions.push(geometryEngine.union(geometrys.slice(start, end)));
+      }
+      var merge_union = geometryEngine.union(unions);
+      query.geometry = merge_union;
       query.distance = radius;
       query.units = "meters";
       query.spatialRelationship = "intersects";
@@ -888,6 +900,7 @@ require([
     
     var query = featureLayer.createQuery();
     query.where = "1=1";
+    query.maxRecordCountFactor = 5;
     query.returnGeometry = true;
     query.outFields = ["OBJECTID"];
     
@@ -905,15 +918,23 @@ require([
   
   function drawGraphicSpatialBuffer(geometrys, radius) {
     
-    var union = geometryEngine.union(geometrys);
-    const bGeometry = geometryEngine.geodesicBuffer(union, radius, "meters");
+    const page = Math.ceil(geometrys.length / 2000);
+    for (var i=0;i<page;i++) {
+      let start = i * 2000;
+      let end = (i + 1) * 2000;
+      if (end > geometrys.length) {
+        end = geometrys.length;
+      }
 
-    let selectGraphic = new Graphic({
-      geometry: bGeometry,
-      symbol: buffermarkerSymbol
-    });
-    main_mapview.graphics.push(selectGraphic);
-    
+      let union = geometryEngine.union(geometrys.slice(start, end));
+      let bGeometry = geometryEngine.geodesicBuffer(union, radius, "meters");
+
+      let selectGraphic = new Graphic({
+        geometry: bGeometry,
+        symbol: buffermarkerSymbol
+      });
+      main_mapview.graphics.push(selectGraphic);
+    }
   }
   
   //指令登録フォームの初期化
