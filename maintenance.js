@@ -851,6 +851,7 @@ require([
       where += " and " + datetime_field + " >= '" + getAddDate(-7) + "'";
     }
     
+    var oids = [];
     var query = featureLayer.createQuery();
     query.where = where;
     query.returnGeometry = false;
@@ -859,7 +860,6 @@ require([
     if (filterselect == "空間条件") {
       var geometrys = await getFacilityGeometry(selectLayer);
       
-      var oids = [];
       var unions = [];
       const page = Math.ceil(geometrys.length / 200);
       for (var i=0;i<page;i++) {
