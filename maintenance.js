@@ -314,7 +314,7 @@ require([
     //$('#submitDiv').show();
   }
   
-  //指示を抽出して表示
+  //指令を抽出して表示
   async function query_intrfeatures() {
 
     var results = await getOrderList();
@@ -352,7 +352,7 @@ require([
       const label = document.createElement("label");
       label.for = "radio_" + orderNo;
       var content = "";
-      content += "指示No.\t" + orderNo + "\t";
+      content += "指令No.\t" + orderNo + "\t";
       content += instruction + "\n";
       content += expirykubun + "\t件数\t" + count;
       label.textContent = content;
@@ -468,27 +468,27 @@ require([
     }
   });
   
-  //指示確認タブ　指示内容変更時
+  //指令確認タブ　指示内容変更時
   $('#t1_instruction').on("change", function(event){
     query_intrfeatures();
   });
   
-  //指示確認タブ　いつまで変更時
+  //指令確認タブ　いつまで変更時
   $('#t1_expirykubun').on("change", function(event){
     query_intrfeatures();
   });
   
-  //指示確認タブ　オーダー期限変更時
+  //指令確認タブ　オーダー期限変更時
   $('#t1_datetimeselect').on("change", function(event){
     query_intrfeatures();
   });
   
-  //指示確認タブ　端末ID変更時
+  //指令確認タブ　端末ID変更時
   $('#t1_teaminal_id').on("change", function(event){
     query_intrfeatures();
   });
   
-  //指示登録タブ　指示方法変更
+  //指令登録タブ　指示方法変更
   $('#t2_instructionselect').on("change", function(event){
     var t2_instructionselect = document.getElementById('t2_instructionselect').value;
     if (t2_instructionselect == "通常") {
@@ -502,12 +502,12 @@ require([
     reset_form(2);
   });
   
-  //指示登録タブ　クリアボタンクリック時
+  //指令登録タブ　クリアボタンクリック時
   $('#t2_clear').on("click", function(event){
     reset_form(2);
   });
 
-  //指示登録タブ　半径の指定変更
+  //指令登録タブ　半径の指定変更
   $('#t2_radius-slider').on("change", function(event){
     document.getElementById('t2_radius-value').innerText = event.target.value;
     
@@ -516,7 +516,7 @@ require([
     }
   });
   
-  //指示登録タブ　オーダー期限変更時
+  //指令登録タブ　オーダー期限変更時
   $('#t2_expiryselect').on("change", function(event){
     var t2_expiryselect = document.getElementById('t2_expiryselect').value;
     
@@ -533,7 +533,7 @@ require([
     }
   });
 
-  //指示登録タブ　指示登録ボタンクリック
+  //指令登録タブ　指示登録ボタンクリック
   $('#t2_submit').on("click", async function(event){
     
     if (current_centerPoint == null) {
@@ -662,7 +662,7 @@ require([
     return features;
   }
   
-  //指示登録処理
+  //指令登録処理
   function add_feature(features) {
     var url = requestLayer.url + "/" + requestLayer.layerId + "/addFeatures";
 
@@ -853,15 +853,18 @@ require([
     
     var query = featureLayer.createQuery();
     query.where = where;
+    query.returnGeometry = false;
+    query.outFields = ["OBJECTID"];
     
     if (filterselect == "空間条件") {
       var geometrys = await getFacilityGeometry(selectLayer);
       
+      var oids = [];
       var unions = [];
-      const page = Math.ceil(geometrys.length / 2000);
+      const page = Math.ceil(geometrys.length / 200);
       for (var i=0;i<page;i++) {
-        let start = i * 2000;
-        let end = (i + 1) * 2000;
+        let start = i * 200;
+        let end = (i + 1) * 200;
         if (end > geometrys.length) {
           end = geometrys.length;
         }
@@ -873,18 +876,15 @@ require([
       query.units = "meters";
       query.spatialRelationship = "intersects";
     }
-    
-    query.returnGeometry = false;
-    query.outFields = ["OBJECTID"];
-    
+
     var response = await featureLayer.queryFeatures(query);
     var features = response.features;
 
-    var oids = [];
     for (var i = 0; i< features.length; i++) {
       var oid = features[i].attributes["OBJECTID"];
       oids.push(String(oid));
     }
+
     return oids;
   }
   
@@ -903,6 +903,7 @@ require([
     query.maxRecordCountFactor = 5;
     query.returnGeometry = true;
     query.outFields = ["OBJECTID"];
+    query.orderByFields = "OBJECTID desc";
     
     var response = await featureLayer.queryFeatures(query);
     var features = response.features;
@@ -918,23 +919,26 @@ require([
   
   function drawGraphicSpatialBuffer(geometrys, radius) {
     
-    const page = Math.ceil(geometrys.length / 2000);
+    const page = Math.ceil(geometrys.length / 200);
+    var unions = [];
     for (var i=0;i<page;i++) {
-      let start = i * 2000;
-      let end = (i + 1) * 2000;
+      let start = i * 200;
+      let end = (i + 1) * 200;
       if (end > geometrys.length) {
         end = geometrys.length;
       }
 
       let union = geometryEngine.union(geometrys.slice(start, end));
       let bGeometry = geometryEngine.geodesicBuffer(union, radius, "meters");
-
-      let selectGraphic = new Graphic({
-        geometry: bGeometry,
-        symbol: buffermarkerSymbol
-      });
-      main_mapview.graphics.push(selectGraphic);
+      unions.push(bGeometry);
     }
+
+    let union = geometryEngine.union(unions);
+    let selectGraphic = new Graphic({
+      geometry: union,
+      symbol: buffermarkerSymbol
+    });
+    main_mapview.graphics.push(selectGraphic);
   }
   
   //指令登録フォームの初期化
@@ -977,8 +981,8 @@ require([
     document.getElementById('t3_datetimeselect').value = "すべて";
     document.getElementById('t3_filterselect').value = "すべて";
     document.getElementById('t3_selectLayer').value = "電柱";
-    document.getElementById('t3_radius-value').innerText = "0";
-    document.getElementById('t3_radius-slider').value = "0";
+    document.getElementById('t3_radius-value').innerText = "50";
+    document.getElementById('t3_radius-slider').value = "50";
 
     $('#t3_spatialFilterDiv').hide();
 
