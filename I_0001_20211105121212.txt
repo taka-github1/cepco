@@ -1,5 +1,5 @@
 {
-    "teaminal_id": "0001",
+    "terminal_id": "0001",
     "device_id": "1",
     "scene_longitude": 136.9480625050034,
     "scene_latitude": 35.05563831853588,
