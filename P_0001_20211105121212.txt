@@ -1,5 +1,5 @@
 {
-    "teaminal_id": "0001",
+    "terminal_id": "0001",
     "device_id": "XXXXXXXXXXXXXXXX",
     "image_url": "https://xxxx.jp/0001/0001_20211105121212.png",
     "image_path": "0001_20211105121212.png",
