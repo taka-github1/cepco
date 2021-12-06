@@ -1,0 +1,62 @@
+{
+    "teaminal_id": "0001",
+    "device_id": "1",
+    "scene_longitude": 136.9480625050034,
+    "scene_latitude": 35.05563831853588,
+    "scene_datetime": "20211105121212",
+    "scene_direction": 60.4123420715332,
+    "scene_speed": 16.667,
+    "scene_screen_left_right": "L",
+    "total_construction_point": 30,
+    "total_early_point": 20,
+    "classdata": [
+        {
+            "classname": "CORN",
+            "id": 1,
+            "image_url": "https://xxxx.jp/0001/0001_20211105121212.png",
+            "image_path": "0001_20211105121212.png",
+            "screen_left_right": "R",
+            "screen_top_down": "T",
+            "longitude": 136.9480625050034,
+            "latitude": 35.05563831853588,
+            "datetime": 20211105091012,
+            "direction": 60.4123420715332,
+            "speed": 16.667,
+            "probability": 15,
+            "construction_point": 3,
+            "early_point": 3
+        },
+        {
+            "classname": "CORN",
+            "id": 2,
+            "image_url": "https://xxxx.jp/0001/0001_20211105121212.png",
+            "image_path": "0001_20211105121212.png",
+            "screen_left_right": "R",
+            "screen_top_down": "T",
+            "longitude": 136.9480625050034,
+            "latitude": 35.05563831853588,
+            "datetime": 20211105091012,
+            "direction": 60.4123420715332,
+            "speed": 16.667,
+            "probability": 15,
+            "construction_point": 3,
+            "early_point": 3
+        },
+        {
+            "classname": "CORN",
+            "id": 3,
+            "image_url": "https://xxxx.jp/0001/0001_20211105121212.png",
+            "image_path": "0001_20211105121212.png",
+            "screen_left_right": "R",
+            "screen_top_down": "T",
+            "longitude": 136.9480625050034,
+            "latitude": 35.05563831853588,
+            "datetime": 20211105091012,
+            "direction": 60.4123420715332,
+            "speed": 16.667,
+            "probability": 15,
+            "construction_point": 3,
+            "early_point": 3
+        }
+    ]
+}
