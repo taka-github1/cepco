@@ -94,6 +94,7 @@ require([
     map: child_map,
     popup: {
       dockEnabled: true,
+      collapseEnabled: false,
       dockOptions: {
         buttonEnabled: false,
         breakpoint: true,
