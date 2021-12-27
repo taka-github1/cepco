@@ -1,0 +1,115 @@
+{
+    "layers": [
+        {
+            "index": 1,
+            "mapno": "101-1",
+            "name": "建築基準法上の道路",
+            "vissible": false,
+            "sublayers": {
+                "id": "-1",
+                "name": "全て"
+            }
+        },
+        {
+            "index": 2,
+            "mapno": "109-1",
+            "name": "宅造法規制区域・災害危険地域",
+            "vissible": false,
+            "sublayers": {
+                "id": "-1",
+                "name": "全て"
+            }
+        },
+        {
+            "index": 3,
+            "mapno": "110-1",
+            "name": "その他関係法令",
+            "vissible": false,
+            "sublayers": {
+                "id": "-1",
+                "name": "全て"
+            }
+        },
+        {
+            "index": 4,
+            "mapno": "301-2",
+            "name": "都市計画情報",
+            "vissible": false,
+            "sublayers": {
+                "id": "-1",
+                "name": "全て"
+            }
+        },
+        {
+            "index": 5,
+            "mapno": "310-2",
+            "name": "屋外広告物規制情報",
+            "vissible": false,
+            "sublayers": {
+                "id": "-1",
+                "name": "全て"
+            }
+        },
+        {
+            "index": 6,
+            "mapno": "601-1",
+            "name": "道路台帳図",
+            "vissible": false,
+            "sublayers": {
+                "id": "-1",
+                "name": "全て"
+            }
+        },
+        {
+            "index": 7,
+            "mapno": "602-1",
+            "name": "道路狭隘箇所",
+            "vissible": false,
+            "sublayers": {
+                "id": "-1",
+                "name": "全て"
+            }
+        },
+        {
+            "index": 8,
+            "mapno": "401-1",
+            "name": "埋設文化財",
+            "vissible": false,
+            "sublayers": {
+                "id": "-1",
+                "name": "全て"
+            }
+        },
+        {
+            "index": 9,
+            "mapno": "2-1",
+            "name": "静岡地質情報",
+            "vissible": false,
+            "sublayers": {
+                "id": "-1",
+                "name": "全て"
+            }
+        },
+        {
+            "index": 10,
+            "mapno": "3101-1",
+            "name": "鳥獣保護区",
+            "vissible": false,
+            "sublayers": {
+                "id": "-1",
+                "name": "全て"
+            }
+        },
+        {
+            "index": 11,
+            "mapno": "3102-1",
+            "name": "自然公園・自然環境保全地域",
+            "vissible": false,
+            "sublayers": {
+                "id": "-1",
+                "name": "全て"
+            }
+        }
+    ]
+}
+
