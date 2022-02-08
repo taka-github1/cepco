@@ -17,6 +17,13 @@ require([
   "esri/widgets/BasemapGallery"]
         , function(Portal, OAuthInfo, IdentityManager, WebMap, MapView, FeatureLayer, Point, Circle, Graphic, geometryEngine, watchUtils, Home, Search, Expand, Legend, BasemapGallery) {
 
+  var childClassList = [
+    "三角コーン","コーナーガード","シート","壁","出入口","電線カバー",
+    "トイレ","空地","小型工事機器","足場","基礎","落下防止柵","つた",
+    "網(ゴミ含む)","トラック","大型建設機器","工事シート","人",
+    "作業員","三角旗","ボーリング機器","大型クレーン","工事情報"
+  ];
+  
   var application_id = "MCubDzQZqCpjC3Ca";
   var token = "";
   
@@ -82,9 +89,9 @@ require([
     popup: {
       dockEnabled: true,
       dockOptions: {
-        buttonEnabled: false,
-        breakpoint: true,
-        position: "Top Left"
+        buttonEnabled: true,
+        breakpoint: false,
+        position: "bottom-left"
       }
     }
   });
@@ -94,13 +101,39 @@ require([
     map: child_map,
     popup: {
       dockEnabled: true,
-      collapseEnabled: false,
       dockOptions: {
+        breakpoint: false,
         buttonEnabled: false,
-        breakpoint: true,
-        position: "Top Left"
+        position: "bottom-right"
       }
     }
+  });
+  
+  const panelSlide = document.getElementById("panel-side");
+  let psExpand = new Expand({
+    view: main_mapview,
+    content: panelSlide,
+    expandTooltip: "条件指定",
+    expandIconClass: "esri-icon-search",
+    expanded: true
+  });
+  main_mapview.ui.add(psExpand, {
+    position: "top-right",
+    index: 0
+  });
+  
+  const childMapview = document.getElementById("panel-child-scene");
+  let csExpand = new Expand({
+    view: main_mapview,
+    content: childMapview,
+    expandTooltip: "推論子情報",
+    expandIconClass: "esri-icon-applications",
+    expanded: false
+  });
+  
+  main_mapview.ui.add(csExpand, {
+    position: "bottom-right",
+    index: 0
   });
   
   let homeWidget = new Home({
@@ -125,11 +158,10 @@ require([
     view: main_mapview,
     content: legendWidget,
     expandTooltip: "凡例",
-    expanded: true
+    expanded: false
   });
   main_mapview.ui.add(leExpand, {
-    position: "bottom-left",
-    index: 0
+    position: "top-left"
   });
 
   let basemapGallery = new BasemapGallery({
@@ -153,6 +185,7 @@ require([
   var orderResLayer = null;
   
   main_map.when(function (layers) {
+    csExpand.visible = false;
     //レイヤー取得
     poleLayer = layers.allLayers.find(
       value => value.title == "電柱");
@@ -223,16 +256,6 @@ require([
         setTimeout(function(){
           main_mapview.graphics.removeAll();
         }, 2000);
-
-        /*
-        main_mapview.goTo(
-          {
-            target: main_mapview.graphics.items
-          }
-        ).catch((error) => {
-          console.error(error);
-        });
-        */
       });
 
       //範囲抽出リスト選択時
@@ -262,32 +285,29 @@ require([
     });
   });
   
-  //推論子マップの表示ボタンを追加
-  main_mapview.when(function () {
-    inferenceLayer.on("layerview-create", function(event){
-      const responseThisAction = {
-        title: "詳細情報",
-        id: "response-this",
-        className: "esri-icon-notice-round"
-      };
-      inferenceLayer.popupTemplate.actions = [responseThisAction];
-    });
-  });
-
   child_map.when(function (layers) {
     inferenceChildLayer = layers.allLayers.find(
       value => value.title == "推論受信子データ");
     inferenceChildLayer.definitionExpression = "1<>1";
   });
-  
-  main_mapview.popup.on("trigger-action", (e) => {
-    if (e.action.id === "response-this") {
-      var key_code = main_mapview.popup.features[0].attributes.key_code;
-      inferenceChildLayer.definitionExpression = "key_code = '" + key_code + "'";
-      $('#childscenForm').show();
-      inferenceChildLayer.queryExtent().then(function(results){
-        child_mapview.goTo(results.extent);
-      });
+
+  main_mapview.popup.watch("selectedFeature", function (feature) {
+    inferenceChildLayer.definitionExpression = "1<>1";
+    $('#childscenForm').hide();
+    child_mapview.popup.close();
+    csExpand.visible = false;
+
+    if (feature != null) {
+      if (feature.layer.title == inferenceLayer.title) {
+        var key_code = feature.attributes.key_code;
+        inferenceChildLayer.definitionExpression = "key_code = '" + key_code + "'";
+        $('#childscenForm').show();
+        csExpand.visible = true;
+        csExpand.expanded = true;
+        inferenceChildLayer.queryExtent().then(function(results){
+          child_mapview.goTo(results.extent);
+        });
+      }
     }
   });
   
@@ -299,6 +319,8 @@ require([
     watchUtils.whenFalseOnce(main_mapview.popup,'visible',function(){
       inferenceChildLayer.definitionExpression = "1<>1";
       $('#childscenForm').hide();
+      child_mapview.popup.close();
+      csExpand.visible = false;
     })
   });
   
@@ -315,9 +337,10 @@ require([
     //$('#submitDiv').show();
   }
   
-  //指令を抽出して表示
+  //指示データを抽出して表示
   async function query_intrfeatures() {
-
+    main_mapview.popup.close();
+    
     var results = await getOrderList();
     
     const objectCount = document.getElementById('t1_instruction_count');
@@ -353,7 +376,7 @@ require([
       const label = document.createElement("label");
       label.for = "radio_" + orderNo;
       var content = "";
-      content += "指令No.\t" + orderNo + "\t";
+      content += "指示No.\t" + orderNo + "\t";
       content += instruction + "\n";
       content += expirykubun + "\t件数\t" + count;
       label.textContent = content;
@@ -469,27 +492,27 @@ require([
     }
   });
   
-  //指令確認タブ　指示内容変更時
+  //指示確認タブ　指示内容変更時
   $('#t1_instruction').on("change", function(event){
     query_intrfeatures();
   });
   
-  //指令確認タブ　いつまで変更時
+  //指示確認タブ　いつまで変更時
   $('#t1_expirykubun').on("change", function(event){
     query_intrfeatures();
   });
   
-  //指令確認タブ　オーダー期限変更時
+  //指示確認タブ　オーダー期限変更時
   $('#t1_datetimeselect').on("change", function(event){
     query_intrfeatures();
   });
   
-  //指令確認タブ　端末ID変更時
+  //指示確認タブ　端末ID変更時
   $('#t1_teaminal_id').on("change", function(event){
     query_intrfeatures();
   });
   
-  //指令登録タブ　指示方法変更
+  //指示登録タブ　指示方法変更
   $('#t2_instructionselect').on("change", function(event){
     var t2_instructionselect = document.getElementById('t2_instructionselect').value;
     if (t2_instructionselect == "通常") {
@@ -503,12 +526,12 @@ require([
     reset_form(2);
   });
   
-  //指令登録タブ　クリアボタンクリック時
+  //指示登録タブ　クリアボタンクリック時
   $('#t2_clear').on("click", function(event){
     reset_form(2);
   });
 
-  //指令登録タブ　半径の指定変更
+  //指示登録タブ　半径の指定変更
   $('#t2_radius-slider').on("change", function(event){
     document.getElementById('t2_radius-value').innerText = event.target.value;
     
@@ -517,24 +540,24 @@ require([
     }
   });
   
-  //指令登録タブ　オーダー期限変更時
+  //指示登録タブ　オーダー期限変更時
   $('#t2_expiryselect').on("change", function(event){
     var t2_expiryselect = document.getElementById('t2_expiryselect').value;
     
-    document.getElementById('t2_expirydate').hidden = true;
+    document.getElementById('t2_expirydate').style.visibility ="hidden";
     if (t2_expiryselect == "1日後") {
       document.getElementById('t2_expirydate').value = getAddDate(1);
     } else if (t2_expiryselect == "1週間後") {
       document.getElementById('t2_expirydate').value = getAddDate(7);
     } else if (t2_expiryselect == "1ヶ月後") {
       document.getElementById('t2_expirydate').value = getAddDate(30);
-    } else if (t2_expiryselect == "カスタム") {
+    } else if (t2_expiryselect == "日付範囲") {
       document.getElementById('t2_expirydate').value = getAddDate(1);
-      document.getElementById('t2_expirydate').hidden = false;
+      document.getElementById('t2_expirydate').style.visibility ="visible";
     }
   });
 
-  //指令登録タブ　指示登録ボタンクリック
+  //指示登録タブ　指示登録ボタンクリック
   $('#t2_submit').on("click", async function(event){
     
     if (current_centerPoint == null) {
@@ -545,8 +568,39 @@ require([
     add_feature(features);
   });
   
+  //結果確認タブ　推論／指示変更時
+  $('#t3_inferenceorderselect').on("change", function(event){
+    filterResponseLayer();
+  });
+  
   //結果確認タブ　日付変更時
   $('#t3_datetimeselect').on("change", function(event){
+    var datetimeselect = document.getElementById('t3_datetimeselect').value;
+    
+    document.getElementById('t3_daterangeDiv').style.display ="none";
+    if (datetimeselect == "本日のみ") {
+      document.getElementById('t3_fromdate').value = getAddDate(0);
+      document.getElementById('t3_todate').value = getAddDate(0);
+    } else if (datetimeselect == "前日以降") {
+      document.getElementById('t3_fromdate').value = getAddDate(-1);
+      document.getElementById('t3_todate').value = getAddDate(0);
+    } else if (datetimeselect == "1週間") {
+      document.getElementById('t3_fromdate').value = getAddDate(-7);
+      document.getElementById('t3_todate').value = getAddDate(0);
+    } else if (datetimeselect == "日付範囲") {
+      document.getElementById('t3_fromdate').value = getAddDate(0);
+      document.getElementById('t3_todate').value = getAddDate(0);
+      document.getElementById('t3_daterangeDiv').style.display ="block";
+    }
+    
+    filterResponseLayer();
+  });
+  
+  //結果確認タブ　日付範囲時
+  $('#t3_fromdate').on("change", function(event){
+    filterResponseLayer();
+  });
+  $('#t3_todate').on("change", function(event){
     filterResponseLayer();
   });
   
@@ -568,20 +622,76 @@ require([
     filterResponseLayer();
   });
   
-  //結果確認タブ　半径変更時
+  //結果確認タブ　半径スライダー変更時
   $('#t3_radius-slider').on("change", function(event){
-    document.getElementById('t3_radius-value').innerText = event.target.value;
+    document.getElementById('t3_radius-value').value = event.target.value;
     
     filterResponseLayer();
   });
   
+  //結果確認タブ　半径入力変更時
+  $('#t3_radius-value').on("change", function(event){
+    var radiusSlider = document.getElementById('t3_radius-slider');
+    var radiusValue = document.getElementById('t3_radius-value');
+    
+    if (isNaN(event.target.value) == true){
+      radiusSlider.value = radiusSlider.min;
+      radiusValue.value = radiusSlider.min;
+    }
+    if (Number(radiusSlider.min) > Number(event.target.value)) {
+      radiusSlider.value = radiusSlider.min;
+      radiusValue.value = radiusSlider.min;
+    }
+    if (Number(radiusSlider.max) < Number(event.target.value)) {
+      radiusSlider.value = radiusSlider.max;
+      radiusValue.value = radiusSlider.max;
+    }
+    radiusSlider.value = event.target.value;
+    
+    filterResponseLayer();
+  });
+  
+  //結果確認タブ　クラス条件変更時
+  $('#t3_classselect').on("change", function(event){
+    var t3_classselect = document.getElementById('t3_classselect').value;
+    if (t3_classselect == "クラス選択") {
+      $('#t3_classChoiseDiv').show();
+      $('#t3_classChoise').focus();
+      filterResponseLayer();
+    } else {
+      $('#t3_classChoiseDiv').hide();
+      filterResponseLayer();
+    }
+  });
+  
+  //結果確認タブ　クラス選択の変更時
+  $('#t3_classChoise').on("change", function(event){
+    filterResponseLayer();
+  });
+  
+  
   //結果レイヤーのフィルター処理
   async function filterResponseLayer() {
     main_mapview.graphics.removeAll();
-
+    main_mapview.popup.close();
+    
+    var inferenceorder = document.getElementById('t3_inferenceorderselect').value;
     var filterselect = document.getElementById('t3_filterselect').value;
     var selectLayer = document.getElementById('t3_selectLayer').value;
     var radius = document.getElementById('t3_radius-slider').value;
+    
+    //推論／指示の表示切替
+    if (inferenceorder == "推論") {
+      inferenceLayer.visible = true;
+      orderResLayer.visible = false;
+    } else if (inferenceorder == "指示") {
+      inferenceLayer.visible = false;
+      orderResLayer.visible = true;
+    } else {
+      inferenceLayer.visible = true;
+      orderResLayer.visible = true;
+    }
+    
     if (filterselect == "空間条件") {
       var geometrys = await getFacilityGeometry(selectLayer);
       drawGraphicSpatialBuffer(geometrys, radius);
@@ -616,7 +726,7 @@ require([
     if (expirydate == "") {
       expirydate = null
     } else {
-      expirydate = expirydate.replace(/-/g, '/') + " 00:00:00";
+      expirydate = expirydate + " 00:00:00";
     }
     
     var teaminal_id = document.getElementById('t2_teaminal_id').value;
@@ -663,7 +773,7 @@ require([
     return features;
   }
   
-  //指令登録処理
+  //指示登録処理
   function add_feature(features) {
     var url = requestLayer.url + "/" + requestLayer.layerId + "/addFeatures";
 
@@ -690,7 +800,7 @@ require([
     });
   }
   
-  //指令番号ごとのデータを取得
+  //指示番号ごとのデータを取得
   async function getOrderList() {
     
     var instruction = document.getElementById('t1_instruction').value;
@@ -776,7 +886,7 @@ require([
     return results;
   }
 
-  //指令番号ごとのデータを取得
+  //指示番号ごとのデータを取得
   async function getOrderDetailList(where) {
 
     var query = requestLayer.createQuery();
@@ -794,7 +904,7 @@ require([
     return features;
   }
   
-  //新しい指令番号を取得
+  //新しい指示番号を取得
   async function getNewOrderNo() {
 
     var query = requestLayer.createQuery();
@@ -818,7 +928,7 @@ require([
     if (features.length > 0) {
       var no = features[0].attributes["max_orderNo"];
       if (no != null) {
-        orderNo = Number(no) + 1;
+        orderNo = no + 1;
       }
     }
     
@@ -829,9 +939,19 @@ require([
   async function getResponseOids(layer) {
     
     var datetimeselect = document.getElementById('t3_datetimeselect').value;
+    var fromdate = document.getElementById('t3_fromdate').value;
+    var d_fromdate = new Date(fromdate + ' 00:00:00'); 
+    d_fromdate.setDate(d_fromdate.getDate());
+    fromdate = formatDate(d_fromdate, 'yyyy-MM-dd HH:mm:ss');
+    var todate = document.getElementById('t3_todate').value;
+    var d_todate = new Date(todate + ' 00:00:00'); 
+    d_todate.setDate(d_todate.getDate() + 1);
+    todate = formatDate(d_todate, 'yyyy-MM-dd HH:mm:ss');
     var filterselect = document.getElementById('t3_filterselect').value;
     var selectLayer = document.getElementById('t3_selectLayer').value;
     var radius = document.getElementById('t3_radius-slider').value;
+    var classselect = document.getElementById('t3_classselect').value;
+    var classChoise = $('#t3_classChoise').val();
     
     var datetime_field = "scene_datetime";
     var featureLayer = inferenceLayer;
@@ -845,18 +965,18 @@ require([
     
     var where = "1=1";
     if (datetimeselect == "本日") {
-      where += " and " + datetime_field + " = '" + getAddDate(0) + "'";
+      where += " and " + datetime_field + " > '" + getAddDate(-1) + "'";
     } else if (datetimeselect == "前日") {
-      where += " and " + datetime_field + " >= '" + getAddDate(-1) + "'";
+      where += " and " + datetime_field + " > '" + getAddDate(-2) + "'";
     } else if (datetimeselect == "1週間") {
-      where += " and " + datetime_field + " >= '" + getAddDate(-7) + "'";
+      where += " and " + datetime_field + " > '" + getAddDate(-8) + "'";
+    } else if (datetimeselect == "日付範囲") {
+      where += " and " + datetime_field + " > '" + fromdate + "'";
+      where += " and " + datetime_field + " < '" + todate + "'";
     }
     
-    var oids = [];
     var query = featureLayer.createQuery();
     query.where = where;
-    query.returnGeometry = false;
-    query.outFields = ["OBJECTID"];
     
     if (filterselect == "空間条件") {
       var geometrys = await getFacilityGeometry(selectLayer);
@@ -877,16 +997,60 @@ require([
       query.units = "meters";
       query.spatialRelationship = "intersects";
     }
-
+    
+    query.returnGeometry = false;
+    query.outFields = ["OBJECTID", "key_code"];
+    
     var response = await featureLayer.queryFeatures(query);
     var features = response.features;
 
-    for (var i = 0; i< features.length; i++) {
-      var oid = features[i].attributes["OBJECTID"];
-      oids.push(String(oid));
+    if (layer == "推論" && classselect != "すべて" && classChoise.length != 0 && features.length != 0) {
+      var attributes = [];
+      for (var i = 0; i< features.length; i++) {
+        attributes.push({
+          oid: String(features[i].attributes["OBJECTID"]),
+          key_code: String(features[i].attributes["key_code"])
+        });
+      }
+      
+      var filterOids = await getFilterClassChild(attributes, classChoise);
+      return filterOids;
+    } else {
+      var oids = [];
+      for (var i = 0; i< features.length; i++) {
+        var oid = features[i].attributes["OBJECTID"];
+        oids.push(String(oid));
+      }
+      return oids;
     }
-
-    return oids;
+  }
+  
+  async function getFilterClassChild(attributes, classChoise) {
+    const key_codes = attributes.map((obj) => obj.key_code);
+    var where = "key_code in ('" + key_codes.join("','") + "')";
+    where += " and classname in ('" + classChoise.join("','") + "')";
+    
+    var query = inferenceChildLayer.createQuery();
+    query.where = where;
+    query.returnGeometry = false;
+    query.outFields = ["key_code"];
+    
+    var response = await inferenceChildLayer.queryFeatures(query);
+    var features = response.features;
+    
+    var filterKeycodes = [];
+    for (var i = 0; i< features.length; i++) {
+      filterKeycodes.push(String(features[i].attributes['key_code']));
+    }
+    
+    var filterOids = [];
+    for (var i = 0; i< attributes.length; i++) {
+      if (filterKeycodes.indexOf(attributes[i].key_code) !== -1) {
+        filterOids.push(attributes[i].oid);
+      }
+    }
+    
+    return filterOids;
   }
   
   async function getFacilityGeometry(selectLayer) {
@@ -904,7 +1068,6 @@ require([
     query.maxRecordCountFactor = 5;
     query.returnGeometry = true;
     query.outFields = ["OBJECTID"];
-    query.orderByFields = "OBJECTID desc";
     
     var response = await featureLayer.queryFeatures(query);
     var features = response.features;
@@ -942,20 +1105,13 @@ require([
     main_mapview.graphics.push(selectGraphic);
   }
   
-  //指令登録フォームの初期化
+  //指示登録フォームの初期化
   function reset_form(id) {
     main_mapview.graphics.removeAll();
     current_centerPoint = null;
     
-    if (id == 1) {
-      $('#tab01')[0].checked = true;
-    } else if (id == 2) {
-      $('#tab02')[0].checked = true;
-    } else if (id == 3) {
-      $('#tab03')[0].checked = true;
-    }
     
-    //指令登録タブのクリア
+    //指示登録タブのクリア
     query_intrfeatures();
     const listNode = document.getElementById("t2_facility_list");
     const fragment = document.createDocumentFragment();
@@ -972,22 +1128,35 @@ require([
     document.getElementById('t2_expirykubun').value = "指定なし";
     document.getElementById('t2_expiryselect').value = "1日後";
     document.getElementById('t2_expirydate').value = getAddDate(1);
-    document.getElementById('t2_expirydate').hidden = true;
     document.getElementById('t2_teaminal_id').value = "";
     
     //$('#submitDiv').hide();
     $('#childscenForm').hide();
     
     //結果確認タブのクリア
+    document.getElementById('t3_inferenceorderselect').value = "すべて";
     document.getElementById('t3_datetimeselect').value = "すべて";
+    document.getElementById('t3_daterangeDiv').style.display ="none";
     document.getElementById('t3_filterselect').value = "すべて";
     document.getElementById('t3_selectLayer').value = "電柱";
-    document.getElementById('t3_radius-value').innerText = "50";
-    document.getElementById('t3_radius-slider').value = "50";
-
-    $('#t3_spatialFilterDiv').hide();
-
+    document.getElementById('t3_radius-value').value = "0";
+    document.getElementById('t3_radius-slider').value = "0";
+    document.getElementById('t3_classselect').value = "すべて";
     
+    $('#t3_spatialFilterDiv').hide();
+    $('#t3_classChoiseDiv').hide();
+    
+    //クラス選択リストの初期化
+    var choise = document.getElementById("t3_classChoise");
+    choise.innerHTML = '';
+    for (const value of childClassList) {
+      var option = document.createElement("option");
+      option.text =value;
+      option.value = value;
+      option.selected = true;
+      choise.appendChild(option);
+    }
+
     //マップレイヤーの表示切り替え
     if (requestLayer == null || poleLayer == null || inferenceLayer == null || orderResLayer == null) {
       return;
@@ -1028,13 +1197,22 @@ require([
     return formatted_date;
   }
   
-  //指定の日付を指定する
+  //現在日に対して指定の日数を加算する
   function getAddDate(days) {
     var date = new Date();
     date.setDate(date.getDate() + days);
-    var year  = date.getFullYear();
-    var month = date.getMonth() + 1;
-    var day   = date.getDate();
-    return String(year) + "-" + String(month) + "-" + String(day);
+    return formatDate(date, 'yyyy-MM-dd');
   }
+  
+  //日付のフォーマット
+  function formatDate(date, format) {
+    format = format.replace(/yyyy/g, date.getFullYear());
+    format = format.replace(/MM/g, ('0' + (date.getMonth() + 1)).slice(-2));
+    format = format.replace(/dd/g, ('0' + date.getDate()).slice(-2));
+    format = format.replace(/HH/g, ('0' + date.getHours()).slice(-2));
+    format = format.replace(/mm/g, ('0' + date.getMinutes()).slice(-2));
+    format = format.replace(/ss/g, ('0' + date.getSeconds()).slice(-2));
+    format = format.replace(/SSS/g, ('00' + date.getMilliseconds()).slice(-3));
+    return format;
+  };
 });
