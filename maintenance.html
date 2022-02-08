@@ -1,13 +1,12 @@
+
 <html>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
-    <title>中部電力　モバイル連携GISアプリ</title>
-
+    <title>中部電力　端末指示アプリ</title>
     <link rel="stylesheet" href="https://js.arcgis.com/4.21/esri/themes/light/main.css" />
     <link rel="stylesheet" href="maintenance.css" />
-    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script></script>
     <script src="https://js.arcgis.com/4.21/"></script>
     <script src="maintenance.js"></script>
   </head>
@@ -16,48 +15,48 @@
       <span class="headertitle">端末指示アプリ</span>
     </div>
     <div class="mainDiv">
-      <div class="panel-container">
-        <div class="panel-side esri-widget">
+      <div class="panel-container-widget">
+        <div id="panel-side" class="panel-side esri-widget">
           <div class="tab-wrap">
-            <input id="tab01" type="radio" name="tab" class="tab-switch" checked="checked"><label class="tab-label" for="tab01">指令確認</label>
+            <input id="tab01" type="radio" name="tab" class="tab-switch" checked="checked"><label class="tab-label" for="tab01">指示確認</label>
             <div class="tab-content">
               <div class="form">
-                <span>指令抽出条件</span>
+                <span>指示抽出条件</span>
                 <br/>
-                <label>指示内容：<br/></label><select id="t1_instruction">
+                <label>指示内容：</label><select id="t1_instruction">
                 <option value="すべて">すべて</option>
                 <option value="写真撮影">写真撮影</option>
                 <option value="動画撮影">動画撮影</option>
                 <option value="警報音">警報音</option>
                 </select><br/>
-                <label>いつまで：<br/></label><select id="t1_expirykubun">
+                <label>いつまで：</label><select id="t1_expirykubun">
                 <option value="すべて">すべて</option>
                 <option value="指定なし">指定なし</option>
                 <option value="すぐに">すぐに</option>
                 <option value="1日後以降">1日後以降</option>
                 </select><br/>
-                <label>オーダー期限：<br/></label><select id="t1_datetimeselect">
+                <label>オーダー期限：</label><select id="t1_datetimeselect">
                 <option value="オーダー期限内">オーダー期限内</option>
                 <option value="すべて">すべて</option>
                 </select><br/>
-                <label>端末ID：<br/></label><input type="text" id="t1_teaminal_id"/><br/>
+                <label>端末ID：</label><input type="text" id="t1_teaminal_id"/><br/>
                 <br/>
-                <label>指示一覧：<br/></label><label id="t1_instruction_count"></label><br/>
+                <label>指示一覧：</label><label id="t1_instruction_count"></label><br/>
                 <ul id="t1_instruction_list">
                 </ul>
                 <label id="t1_instruction_count"></label>
                 <br/>
                 <br/>
-                <h3 hidden>指令詳細</h3>
+                <h3 hidden>指示詳細</h3>
                 <ul id="t1_instruction_detail_list" hidden>
                 </ul>
               </div>
             </div>
-            <input id="tab02" type="radio" name="tab" class="tab-switch"><label class="tab-label" for="tab02">指令登録</label>
+            <input id="tab02" type="radio" name="tab" class="tab-switch"><label class="tab-label" for="tab02">指示登録</label>
             <div class="tab-content">
               <div class="form">
                 <span>指示ポイントの指定</span><br/>
-                <label>指示方法：<br/></label><select id="t2_instructionselect">
+                <label>指示方法：</label><select id="t2_instructionselect">
                 <option value="通常">通常</option>
                 <option value="電柱範囲">電柱範囲</option>
                 </select><br/>
@@ -66,7 +65,7 @@
                   <label>半径<label id="t2_radius-value"></label> m以内の電柱</label>
                   <input type="range" id="t2_radius-slider" min="100" max="500" step="50" value="100">
                   <br/>
-                  <label>電柱一覧：<br/></label><label id="t2_facility_count"></label><br/>
+                  <label>電柱一覧：</label><label id="t2_facility_count"></label><br/>
                   <ul id="t2_facility_list">
                   </ul>
                   <label id="t2_facility_count"></label>
@@ -76,24 +75,24 @@
               <br/>
               <div id="submitDiv" class="form">
                 <span>登録内容</span><br/>
-                <label>指示内容：<br/></label><select id="t2_instruction">
+                <label>指示内容：</label><select id="t2_instruction">
                 <option value="写真撮影">写真撮影</option>
                 <option value="動画撮影">動画撮影</option>
                 <option value="警報音">警報音</option>
                 </select><br/>
-                <label>いつまで：<br/></label><select id="t2_expirykubun">
+                <label>いつまで：</label><select id="t2_expirykubun">
                 <option value="指定なし">指定なし</option>
                 <option value="すぐに">すぐに</option>
                 <option value="1日後以降">1日後以降</option>
                 </select><br/>
-                <label>オーダー期限：<br/></label><select id="t2_expiryselect">
+                <label>オーダー期限：</label><select id="t2_expiryselect">
                 <option value="1日後">1日後</option>
                 <option value="1週間後">1週間後</option>
                 <option value="1ヶ月後">1ヶ月後</option>
-                <option value="カスタム">カスタム</option>
+                <option value="日付範囲">日付範囲</option>
                 </select><br/>
                 <input type="date" id="t2_expirydate" hidden/><br/>
-                <label>端末ID（任意）：<br/></label><input type="text" id="t2_teaminal_id"/><br/>
+                <label>端末ID（任意）：</label><input type="text" id="t2_teaminal_id"/><br/>
                 <button id="t2_submit" class="form_button">指示データに追加</button>
                 <button id="t2_clear" class="form_button">クリア</button>
               </div>
@@ -102,34 +101,60 @@
             <div class="tab-content">
               <div id="responseFormDiv" class="form">
                 <span>選択条件</span><br/>
-                <label>日付条件：<br/></label><select id="t3_datetimeselect">
+                <label>推論／指示：</label><select id="t3_inferenceorderselect">
+                <option value="すべて">すべて</option>
+                <option value="推論">推論</option>
+                <option value="指示">指示</option>
+                </select><br/>
+                <label>日付条件：</label><select id="t3_datetimeselect">
                 <option value="すべて">すべて</option>
                 <option value="本日">本日のみ</option>
                 <option value="前日">前日以降</option>
                 <option value="1週間">1週間</option>
+                <option value="日付範囲">日付範囲</option>
                 </select><br/>
-                <label>選択条件：<br/></label><select id="t3_filterselect">
+                <div id="t3_daterangeDiv">
+                  <input type="date" id="t3_fromdate"/>
+                  <label>～</label>
+                  <input type="date" id="t3_todate"/>
+                </div>
+                <br/>
+                <label>選択条件：</label><select id="t3_filterselect">
                 <option value="すべて">すべて</option>
                 <!--<option value="属性条件">属性条件</option>-->
                 <option value="空間条件">空間条件</option>
                 </select><br/>
                 <div id="t3_spatialFilterDiv" hidden>
-                  <label>レイヤー選択：<br/></label><select id="t3_selectLayer">
+                  <label>レイヤー選択：</label><select id="t3_selectLayer">
                   <option value="電柱">電柱</option>
                   <option value="高圧送電線">高圧送電線</option>
                   </select><br/>
-                  <label>半径：<br/><span id="t3_radius-value">50</span>m</label>
-                  <input type="range" id="t3_radius-slider" min="50" max="500" step="50" value="50"><br/>
+                  <input type="range" id="t3_radius-slider" min="0" max="500" step="1" value="0"/><br/>
+                  <label>半径：</label><br/>
+                  <input type="text" id="t3_radius-value"/>
+                  <br/>
+                </div><br/>
+                <label>クラス選択：</label>
+                <select id="t3_classselect">
+                  <option value="すべて">すべて</option>
+                  <option value="クラス選択">クラス選択</option>
+                </select><br/>
+                <div id="t3_classChoiseDiv" >
+                  <label>指定のクラスが含まれる結果を抽出します</label><br/>
+                  <select id="t3_classChoise" multiple>
+                  </select><br/>
+                  <label>Ctrlキーを押しながら複数選択</label><br/>
                 </div>
-              </div>
-              <div id="childscenForm" hidden>
-                <div id="childsceneDiv"></div>
               </div>
             </div>
           </div>
+        </div>
+        <div id="panel-child-scene" class="panel-child-widget esri-widget">
+          <div id="childsceneDiv"></div>
         </div>
         <div id="sceneDiv"></div>
       </div>
     </div>
   </body>
 </html>
+　
